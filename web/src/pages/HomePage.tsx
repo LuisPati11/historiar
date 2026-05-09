@@ -136,6 +136,8 @@ export function HomePage() {
                           src={m.reference_image_url}
                           alt={m.name}
                           className="w-full h-full object-cover"
+                          loading="lazy"
+                          decoding="async"
                           style={{ minHeight: "130px" }}
                         />
                       ) : (
