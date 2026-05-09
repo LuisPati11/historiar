@@ -9,6 +9,28 @@ import { MonumentsMap } from "../components/MonumentsMap";
 
 type ViewMode = "list" | "map";
 
+function MonumentImage({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div className="relative w-full h-full" style={{ minHeight: "130px" }}>
+      {!loaded && (
+        <div className="absolute inset-0 bg-[#E8E3DC] overflow-hidden">
+          <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.4s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+        </div>
+      )}
+      <img
+        src={src}
+        alt={alt}
+        onLoad={() => setLoaded(true)}
+        loading="lazy"
+        decoding="async"
+        className={`w-full h-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+        style={{ minHeight: "130px" }}
+      />
+    </div>
+  );
+}
+
 function formatDistance(m: number) {
   if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
   return `${Math.round(m)} m`;
@@ -132,14 +154,7 @@ export function HomePage() {
                     {/* Foto */}
                     <div className="w-36 shrink-0 self-stretch">
                       {m.reference_image_url ? (
-                        <img
-                          src={m.reference_image_url}
-                          alt={m.name}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                          decoding="async"
-                          style={{ minHeight: "130px" }}
-                        />
+                        <MonumentImage src={m.reference_image_url} alt={m.name} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-[#f0ece6]" style={{ minHeight: "130px" }}>
                           <svg width="44" height="44" viewBox="0 0 36 36" fill="none" opacity="0.35">

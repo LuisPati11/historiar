@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
 /* Ocultar banner de validación de MapTiler */
 .maplibregl-ctrl-maptiler-validation,
 .mapboxgl-ctrl-maptiler-validation,
