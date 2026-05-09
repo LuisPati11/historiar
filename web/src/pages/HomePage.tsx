@@ -46,9 +46,9 @@ export function HomePage() {
   }, [t]);
 
   return (
-    <main className="min-h-full flex flex-col pb-24 bg-whisper-gray">
+    <main className="min-h-full flex flex-col pb-24 bg-canvas-white">
       {/* Header */}
-      <header className="px-5 pt-10 pb-4 flex items-center justify-between bg-whisper-gray">
+      <header className="px-5 pt-10 pb-4 flex items-center justify-between bg-canvas-white">
         <div className="flex items-center gap-3">
           <svg width="36" height="36" viewBox="0 0 36 36" fill="none" className="shrink-0">
             {/* Base */}
@@ -80,10 +80,10 @@ export function HomePage() {
 
       {/* Toggle lista / mapa */}
       <div className="px-5 mb-4">
-        <div className="flex rounded-2xl bg-canvas-white shadow-sm p-1 w-full">
+        <div className="flex rounded-2xl bg-[#F0F0F0] p-1 w-full">
           <button
             onClick={() => setView("list")}
-            className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-body font-medium transition-all ${view === "list" ? "bg-whisper-gray text-jet-black shadow-sm" : "text-ash-gray"}`}
+            className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-body font-medium transition-all ${view === "list" ? "bg-jet-black text-canvas-white shadow-sm" : "text-ash-gray"}`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <line x1="1" y1="4" x2="15" y2="4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -94,7 +94,7 @@ export function HomePage() {
           </button>
           <button
             onClick={() => setView("map")}
-            className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-body font-medium transition-all ${view === "map" ? "bg-whisper-gray text-jet-black shadow-sm" : "text-ash-gray"}`}
+            className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-body font-medium transition-all ${view === "map" ? "bg-jet-black text-canvas-white shadow-sm" : "text-ash-gray"}`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <polygon points="1,3 6,1 10,3 15,1 15,13 10,15 6,13 1,15" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
