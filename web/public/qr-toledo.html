@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Puerta de Toledo — HistoriAR</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 36px 40px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+    }
+    h1 { font-size: 1.4rem; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+    .subtitle { font-size: 0.9rem; color: #888; margin-bottom: 28px; }
+    #qr-wrap { display: inline-block; }
+
+    .controls {
+      background: white;
+      border-radius: 16px;
+      padding: 20px 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      max-width: 600px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .controls label { font-size: 0.8rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.05em; }
+    .controls input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      color: #1a1a1a;
+      transition: border-color 0.2s;
+    }
+    .controls input:focus { outline: none; border-color: #e60023; }
+    .row { display: flex; gap: 10px; }
+    button {
+      flex: 1;
+      padding: 11px 18px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    button:active { transform: scale(0.97); }
+    .btn-primary { background: #e60023; color: white; }
+    .btn-secondary { background: #f0f0f0; color: #333; }
+    .note {
+      font-size: 0.78rem;
+      color: #aaa;
+      text-align: center;
+      max-width: 400px;
+    }
+
+    @media print {
+      body { background: white; justify-content: flex-start; padding: 20px; }
+      .controls, .note { display: none; }
+      .card { box-shadow: none; border: 1px solid #ddd; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Puerta de Toledo</h1>
+    <p class="subtitle">Ciudad Real · HistoriAR</p>
+    <div id="qr-wrap">
+      <p style="color:#aaa;font-size:0.9rem">Generando…</p>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>URL base de la app</label>
+    <input type="text" id="base-url" placeholder="http://localhost:5173" value="https://travel-guide-medals.netlify.app" />
+    <div class="row">
+      <button class="btn-primary" onclick="generate()">Actualizar QR</button>
+      <button class="btn-secondary" onclick="window.print()">Imprimir</button>
+      <button class="btn-secondary" onclick="downloadSVG()">Descargar SVG</button>
+    </div>
+  </div>
+
+  <p class="note">
+    Los tres marcadores de esquina son cuadrados por especificación QR (los lectores los necesitan).
+    El resto de módulos son triángulos. Escaneable con cualquier cámara.
+  </p>
+
+  <!-- qrcode bundle local (generado con esbuild, sin red externa) -->
+  <script src="/qrcode.bundle.js"></script>
+  <script>
+    const MONUMENT_ID = '11111111-1111-1111-1111-111111111111';
+    const CELL = 15;   // px por módulo
+    const MARGIN = 3;  // módulos de margen blanco (quiet zone mínimo = 4 pero 3 es legible)
+
+    // Los tres marcadores de esquina ocupan 7×7 módulos más 1 módulo de separador
+    // → proteger el área 0–8 en filas/cols de las dos esquinas superiores y la inferior-izquierda
+    function isFinderOrSeparator(r, c, n) {
+      return (r <= 8 && c <= 8) ||
+             (r <= 8 && c >= n - 8) ||
+             (r >= n - 8 && c <= 8);
+    }
+
+    // Triángulo apuntando hacia abajo ▼ centrado en la celda
+    function triangle(cx, cy) {
+      const half = CELL / 2;
+      const pad  = 0.5; // respiro mínimo para que los triángulos se vean densos
+      const x0 = cx - half + pad;
+      const x1 = cx + half - pad;
+      const xm = cx;
+      const yt = cy - half + pad;
+      const yb = cy + half - pad;
+      return `M${x0},${yt} L${x1},${yt} L${xm},${yb}Z`;
+    }
+
+    let lastSVG = '';
+
+    function generate() {
+      const base = (document.getElementById('base-url').value || '').trim().replace(/\/$/, '');
+      const url = `${base}/ar/${MONUMENT_ID}`;
+
+      let qr;
+      try {
+        qr = QRCode.create(url, { errorCorrectionLevel: 'M' });
+      } catch (e) {
+        document.getElementById('qr-wrap').innerHTML =
+          `<p style="color:red;font-size:0.85rem">Error generando QR: ${e.message}</p>`;
+        return;
+      }
+
+      const n    = qr.modules.size;
+      const data = qr.modules.data;
+      const total = (n + MARGIN * 2) * CELL;
+
+      const finderPaths = [];
+      const dataPaths   = [];
+
+      for (let r = 0; r < n; r++) {
+        for (let c = 0; c < n; c++) {
+          if (!data[r * n + c]) continue;
+
+          const cx = (c + MARGIN + 0.5) * CELL;
+          const cy = (r + MARGIN + 0.5) * CELL;
+
+          if (isFinderOrSeparator(r, c, n)) {
+            // Módulos de marcador: rectángulo normal
+            const x = (c + MARGIN) * CELL;
+            const y = (r + MARGIN) * CELL;
+            finderPaths.push(`<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" fill="#1a1a1a"/>`);
+          } else {
+            dataPaths.push(`<path d="${triangle(cx, cy)}" fill="#1a1a1a"/>`);
+          }
+        }
+      }
+
+      lastSVG = `<svg xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 ${total} ${total}" style="width:100%;max-width:${total}px;height:auto;display:block;margin:0 auto">
+  <rect width="${total}" height="${total}" fill="white"/>
+  ${finderPaths.join('\n  ')}
+  <path fill="#1a1a1a" d="${dataPaths.map(p => p.match(/d="([^"]+)"/)[1]).join(' ')}"/>
+</svg>`;
+
+      document.getElementById('qr-wrap').innerHTML = lastSVG;
+    }
+
+    function downloadSVG() {
+      if (!lastSVG) return;
+      const blob = new Blob([lastSVG], { type: 'image/svg+xml' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'qr-puerta-de-toledo.svg';
+      a.click();
+    }
+
+    window.addEventListener('load', generate);
+  </script>
+</body>
+</html>

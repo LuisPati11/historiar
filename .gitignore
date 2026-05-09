@@ -1,0 +1,45 @@
+# Content assets (subidos a Supabase Storage, no se versionan los pesados)
+content/**/*.mp4
+content/**/*.mp3
+content/**/*.aiff
+content/**/*.mind
+content/**/*.png
+content/**/*.jpg
+!content/**/.gitkeep
+
+# Web (Vite + Node)
+web/node_modules/
+web/dist/
+web/.vite/
+web/dev-dist/
+web/.env
+web/.env.local
+web/package-lock.json
+web/yarn.lock
+
+# Supabase
+backend/supabase/.branches/
+backend/supabase/.temp/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Claude Code / agentes
+.claude/
+.agents/
+.playwright-mcp/
+skills-lock.json
+
+# TypeScript build info
+web/tsconfig.tsbuildinfo

@@ -1,0 +1,83 @@
+{
+  "app": {
+    "name": "HistoriAR",
+    "tagline": "Monuments near you"
+  },
+  "home": {
+    "searching": "Searching…",
+    "activate_ar": "Start AR",
+    "scan_qr_hint": "Scan the QR code next to the monument",
+    "no_geolocation": "Geolocation not available on this device."
+  },
+  "ar": {
+    "loading": "Loading monument…",
+    "not_found": "Monument not found.",
+    "no_content": "This monument doesn't have content yet.",
+    "gps_checking": "Verifying your location…",
+    "gps_close": "You're here. Start the experience!",
+    "gps_far": "You need to be next to the monument to access this experience.",
+    "gps_denied": "Enable location permission to verify you're at the monument.",
+    "error": "Something went wrong. Please try again.",
+    "start_experience": "Start experience",
+    "experience_ended": "Experience complete!"
+  },
+  "auth": {
+    "sign_in": "Sign in",
+    "sign_out": "Sign out",
+    "login": "Sign in",
+    "register": "Register",
+    "login_cta": "Sign in",
+    "register_cta": "Create account",
+    "login_tagline": "Welcome back",
+    "register_tagline": "Start discovering monuments",
+    "email": "Email",
+    "password": "Password",
+    "username": "Username",
+    "username_placeholder": "explorer42",
+    "skip": "Continue without account",
+    "choose_avatar": "Choose your explorer",
+    "avatar_required": "Pick an explorer to continue",
+    "guest_mode": "You're in guest mode. Sign in to save your visits and earn medals.",
+    "check_email_title": "Check your email",
+    "check_email_body": "We sent a confirmation link to",
+    "check_email_resend": "Resend email",
+    "check_email_resent": "Sent!"
+  },
+  "nav": {
+    "back": "Back",
+    "cancel": "Cancel"
+  },
+  "profile": {
+    "my_profile": "My profile",
+    "medals": "Medals",
+    "visits": "Visits",
+    "followers": "Followers",
+    "following": "Following",
+    "bio": "Bio",
+    "make_public": "Public profile",
+    "make_private": "Private profile",
+    "saving": "Saving…",
+    "no_medals": "No medals yet",
+    "no_medals_hint": "Scan a monument QR to earn your first one"
+  },
+  "search": {
+    "title": "Explore",
+    "placeholder": "Search explorers…",
+    "hint": "Find other explorers and follow their adventure",
+    "no_results": "No explorers found with that name",
+    "follow": "Follow",
+    "unfollow": "Following"
+  },
+  "feed": {
+    "title": "Feed",
+    "empty": "No activity yet. Follow someone to see their journey.",
+    "empty_title": "Your feed is empty",
+    "empty_hint": "Follow other explorers to see their discoveries",
+    "find_explorers": "Find explorers",
+    "event": {
+      "visit": "{{name}} visited {{monument}}",
+      "medal_earned": "{{name}} earned the {{medal}} medal",
+      "collection_completed": "{{name}} completed the {{collection}} collection"
+    }
+  }
+}

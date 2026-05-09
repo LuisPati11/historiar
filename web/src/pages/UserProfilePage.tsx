@@ -1,0 +1,164 @@
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import {
+  getPublicProfile, getPublicUserMedals, getPublicUserVisitCount,
+  getFollowers, getFollowing, isFollowing, followUser, unfollowUser,
+  type UserMedal, type FollowUser,
+} from "../lib/supabase";
+import { AvatarImage } from "../components/AvatarPicker";
+import { FollowListModal } from "../components/FollowListModal";
+import { TIER_CONFIG } from "../lib/tierConfig";
+
+export function UserProfilePage() {
+  const { userId } = useParams<{ userId: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const [profile, setProfile] = useState<{
+    id: string; display_name: string | null; avatar_url: string | null;
+    bio: string | null; total_points: number; is_public: boolean;
+  } | null>(null);
+  const [medals, setMedals] = useState<UserMedal[]>([]);
+  const [visitCount, setVisitCount] = useState(0);
+  const [followers, setFollowers] = useState<FollowUser[]>([]);
+  const [following, setFollowing] = useState<FollowUser[]>([]);
+  const [amFollowing, setAmFollowing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [showList, setShowList] = useState<"followers" | "following" | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    Promise.all([
+      getPublicProfile(userId),
+      getPublicUserMedals(userId),
+      getPublicUserVisitCount(userId),
+      getFollowers(userId),
+      getFollowing(userId),
+      isFollowing(userId),
+    ]).then(([p, m, v, frs, fng, iF]) => {
+      setProfile(p); setMedals(m); setVisitCount(v);
+      setFollowers(frs); setFollowing(fng); setAmFollowing(iF);
+    }).finally(() => setLoading(false));
+  }, [userId]);
+
+  const handleFollow = async () => {
+    if (!userId) return;
+    setFollowLoading(true);
+    try {
+      if (amFollowing) {
+        await unfollowUser(userId);
+        setAmFollowing(false);
+        setFollowers(f => f.filter(u => u.id !== user?.id));
+      } else {
+        await followUser(userId);
+        setAmFollowing(true);
+      }
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <main className="min-h-full flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
+      </main>
+    );
+  }
+
+  if (!profile || (!profile.is_public && profile.id !== user?.id)) {
+    return (
+      <main className="min-h-full flex flex-col items-center justify-center px-6 text-center">
+        <p className="text-4xl mb-4">🔒</p>
+        <h1 className="text-subheading font-bold text-jet-black mb-2">Perfil privado</h1>
+        <p className="text-body text-ash-gray mb-6">Este explorador mantiene su aventura en secreto.</p>
+        <button onClick={() => navigate(-1)} className="text-body-sm text-pinterest-red font-medium">← Volver</button>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-full pb-8 px-6 pt-8 max-w-screen-md mx-auto">
+      <button onClick={() => navigate(-1)} className="text-ash-gray text-body-sm mb-8 block">← Volver</button>
+
+      {/* Avatar + nombre */}
+      <div className="flex items-center gap-4 mb-6">
+        <AvatarImage avatarId={profile.avatar_url} size="lg" />
+        <div className="flex-1 min-w-0">
+          <h1 className="text-subheading font-bold text-jet-black">{profile.display_name ?? "—"}</h1>
+          {profile.bio && <p className="text-body-sm text-ash-gray mt-0.5 truncate">{profile.bio}</p>}
+        </div>
+        {profile.id !== user?.id && user && (
+          <button
+            onClick={handleFollow}
+            disabled={followLoading}
+            className={`rounded-2xl px-4 py-2 text-body font-semibold shrink-0 transition-colors disabled:opacity-50 ${amFollowing ? "bg-whisper-gray text-graphite" : "bg-pinterest-red text-canvas-white"}`}
+          >
+            {amFollowing ? "Siguiendo" : "Seguir"}
+          </button>
+        )}
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 text-center">
+          <p className="text-heading font-bold text-jet-black">{visitCount}</p>
+          <p className="text-body-sm text-ash-gray">Visitas</p>
+        </div>
+        <div className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 text-center">
+          <p className="text-heading font-bold text-jet-black">{medals.length}</p>
+          <p className="text-body-sm text-ash-gray">Medallas</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3 mb-8">
+        <button onClick={() => setShowList("followers")} className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 text-center active:bg-whisper-gray transition-colors">
+          <p className="text-heading font-bold text-jet-black">{followers.length}</p>
+          <p className="text-body-sm text-ash-gray">Seguidores</p>
+        </button>
+        <button onClick={() => setShowList("following")} className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 text-center active:bg-whisper-gray transition-colors">
+          <p className="text-heading font-bold text-jet-black">{following.length}</p>
+          <p className="text-body-sm text-ash-gray">Siguiendo</p>
+        </button>
+      </div>
+
+      {/* Medallas */}
+      <h2 className="text-subheading font-bold text-jet-black mb-4">Medallas</h2>
+      {medals.length === 0 ? (
+        <div className="rounded-3xl bg-whisper-gray px-6 py-10 text-center">
+          <p className="text-4xl mb-3">🏅</p>
+          <p className="text-body text-ash-gray">Sin medallas aún</p>
+        </div>
+      ) : (
+        <ul className="space-y-3">
+          {medals.map((m) => {
+            const tier = TIER_CONFIG[m.medal.tier];
+            return (
+              <li key={m.medal_id} className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 flex items-center gap-4">
+                <span className="text-3xl">{tier?.emoji ?? "🏅"}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-body font-semibold text-graphite">{m.medal.name}</p>
+                  {m.medal.description && (
+                    <p className="text-body-sm text-ash-gray truncate">{m.medal.description}</p>
+                  )}
+                </div>
+                <span className={`rounded-full px-2.5 py-0.5 text-body-sm font-medium shrink-0 ${tier?.colors ?? "bg-whisper-gray text-graphite"}`}>
+                  {tier?.label ?? "—"}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {showList && (
+        <FollowListModal
+          type={showList}
+          users={showList === "followers" ? followers : following}
+          onClose={() => setShowList(null)}
+        />
+      )}
+    </main>
+  );
+}

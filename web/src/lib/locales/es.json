@@ -1,0 +1,83 @@
+{
+  "app": {
+    "name": "HistoriAR",
+    "tagline": "Monumentos cerca de ti"
+  },
+  "home": {
+    "searching": "Buscando…",
+    "activate_ar": "Activar AR",
+    "scan_qr_hint": "Escanea el código QR junto al monumento",
+    "no_geolocation": "Geolocalización no disponible en este dispositivo."
+  },
+  "ar": {
+    "loading": "Cargando monumento…",
+    "not_found": "Monumento no encontrado.",
+    "no_content": "Este monumento aún no tiene contenido publicado.",
+    "gps_checking": "Verificando tu ubicación…",
+    "gps_close": "Estás aquí. ¡Empieza la experiencia!",
+    "gps_far": "Debes estar junto al monumento para acceder a esta experiencia.",
+    "gps_denied": "Activa el permiso de ubicación para verificar que estás en el monumento.",
+    "error": "Algo ha ido mal. Inténtalo de nuevo.",
+    "start_experience": "Iniciar experiencia",
+    "experience_ended": "¡Fin de la experiencia!"
+  },
+  "auth": {
+    "sign_in": "Entrar",
+    "sign_out": "Cerrar sesión",
+    "login": "Entrar",
+    "register": "Registrarse",
+    "login_cta": "Iniciar sesión",
+    "register_cta": "Crear cuenta",
+    "login_tagline": "Bienvenido de vuelta",
+    "register_tagline": "Empieza a descubrir monumentos",
+    "email": "Email",
+    "password": "Contraseña",
+    "username": "Nombre de usuario",
+    "username_placeholder": "explorador42",
+    "skip": "Continuar sin cuenta",
+    "choose_avatar": "Elige tu explorador",
+    "avatar_required": "Elige un explorador para continuar",
+    "guest_mode": "Estás en modo invitado. Inicia sesión para guardar tus visitas y ganar medallas.",
+    "check_email_title": "Revisa tu email",
+    "check_email_body": "Te hemos enviado un enlace de confirmación a",
+    "check_email_resend": "Reenviar email",
+    "check_email_resent": "¡Enviado!"
+  },
+  "nav": {
+    "back": "Volver",
+    "cancel": "Cancelar"
+  },
+  "profile": {
+    "my_profile": "Mi perfil",
+    "medals": "Medallas",
+    "visits": "Visitas",
+    "followers": "Seguidores",
+    "following": "Siguiendo",
+    "bio": "Biografía",
+    "make_public": "Perfil público",
+    "make_private": "Perfil privado",
+    "saving": "Guardando…",
+    "no_medals": "Aún no tienes medallas",
+    "no_medals_hint": "Escanea el QR de un monumento para ganar la primera"
+  },
+  "search": {
+    "title": "Explorar",
+    "placeholder": "Busca exploradores…",
+    "hint": "Encuentra otros exploradores y sigue su aventura",
+    "no_results": "No se encontraron exploradores con ese nombre",
+    "follow": "Seguir",
+    "unfollow": "Siguiendo"
+  },
+  "feed": {
+    "title": "Feed",
+    "empty": "Aún no hay actividad. Sigue a alguien para ver su recorrido.",
+    "empty_title": "Tu feed está vacío",
+    "empty_hint": "Sigue a otros exploradores para ver sus descubrimientos",
+    "find_explorers": "Buscar exploradores",
+    "event": {
+      "visit": "{{name}} visitó {{monument}}",
+      "medal_earned": "{{name}} consiguió la medalla {{medal}}",
+      "collection_completed": "{{name}} completó la colección {{collection}}"
+    }
+  }
+}

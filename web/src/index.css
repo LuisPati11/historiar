@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+/* Ocultar banner de validación de MapTiler */
+.maplibregl-ctrl-maptiler-validation,
+.mapboxgl-ctrl-maptiler-validation,
+a[href*="maptiler.com/api-key"] { display: none !important; }
+
+/*
+ * HistoriAR — design tokens.
+ * Base: Pinterest "Bright Workshop Canvas" (ver docs/design-system/).
+ * Pin Sans (propietaria) sustituida por Inter desde Google Fonts (cargada en index.html).
+ */
+@theme {
+  /* Colors */
+  --color-canvas-white: #ffffff;
+  --color-jet-black: #000000;
+  --color-graphite: #211922;
+  --color-ash-gray: #666666;
+  --color-muted-slate: #8c8c8c;
+  --color-whisper-gray: #e5e5e0;
+  --color-pinterest-red: #e60023;
+  --color-idea-violet: #9270d7;
+  --color-discovery-blue: #2b48d4;
+  --color-highlight-yellow: #fffd92;
+  --color-impact-orange: #fa5f24;
+
+  /* Typography */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Type scale (Pinterest) */
+  --text-body-sm: 12px;
+  --text-body-sm--line-height: 1.4;
+  --text-body-sm--letter-spacing: -0.44px;
+  --text-body: 14px;
+  --text-body--line-height: 1.4;
+  --text-body--letter-spacing: -0.52px;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 1.5;
+  --text-body-lg--letter-spacing: -0.59px;
+  --text-subheading: 20px;
+  --text-subheading--line-height: 1.4;
+  --text-subheading--letter-spacing: -0.74px;
+  --text-heading: 32px;
+  --text-heading--line-height: 1.2;
+  --text-heading--letter-spacing: -1.18px;
+  --text-heading-lg: 38px;
+  --text-heading-lg--line-height: 1.2;
+  --text-heading-lg--letter-spacing: -1.41px;
+  --text-display-sm: 50px;
+  --text-display-sm--line-height: 1;
+  --text-display-sm--letter-spacing: -1.85px;
+  --text-display: 70px;
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: -2.59px;
+
+  /* Spacing (multiplos de 4px) */
+  --spacing: 4px;
+
+  /* Border radius */
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-card: 20px;
+  --radius-input: 16px;
+  --radius-button: 16px;
+  --radius-nav: 12px;
+}
+
+/* Base globals */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  overscroll-behavior: none;
+  font-family: var(--font-sans);
+  letter-spacing: -0.037em;
+}
+
+/* Default light theme = Pinterest canvas. */
+body {
+  background: var(--color-canvas-white);
+  color: var(--color-graphite);
+}
+
+/* Dark overlay theme: aplicar la clase `theme-ar` al root para AR. */
+.theme-ar {
+  background: var(--color-jet-black);
+  color: var(--color-canvas-white);
+}
+
+/*
+ * MindAR inyecta un <video> (cámara, z-index negativo) y un <canvas>
+ * (Three.js) dentro del container con dimensiones calculadas para
+ * mantener aspect-ratio. Solo forzamos `isolation` y `z-index` para
+ * que el video no escape detrás del padre por su z-index negativo.
+ */
+.mindar-container {
+  isolation: isolate;
+}
+
+.mindar-container video {
+  z-index: 1 !important;
+}
+
+.mindar-container canvas {
+  z-index: 2 !important;
+  background: transparent !important;
+}
