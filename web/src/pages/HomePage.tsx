@@ -51,8 +51,16 @@ export function HomePage() {
       <header className="px-5 pt-10 pb-4 flex items-center justify-between bg-whisper-gray">
         <div className="flex items-center gap-3">
           <svg width="36" height="36" viewBox="0 0 36 36" fill="none" className="shrink-0">
-            <path d="M18 4C18 4 8 12 8 20a10 10 0 0020 0C28 12 18 4 18 4z" stroke="#1A1A1A" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-            <line x1="18" y1="30" x2="18" y2="36" stroke="#1A1A1A" strokeWidth="1.8" strokeLinecap="round"/>
+            {/* Base */}
+            <line x1="4" y1="30" x2="32" y2="30" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round"/>
+            {/* Columnas */}
+            <line x1="10" y1="30" x2="10" y2="18" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="18" y1="30" x2="18" y2="18" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="26" y1="30" x2="26" y2="18" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round"/>
+            {/* Friso */}
+            <line x1="6" y1="18" x2="30" y2="18" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round"/>
+            {/* Frontón triangular */}
+            <polyline points="4,16 18,7 32,16" stroke="#1A1A1A" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           <div>
             <h1 className="text-heading font-bold text-jet-black leading-tight">Explora</h1>
@@ -128,11 +136,18 @@ export function HomePage() {
                           src={m.reference_image_url}
                           alt={m.name}
                           className="w-full h-full object-cover"
-                          style={{ minHeight: "120px" }}
+                          style={{ minHeight: "130px" }}
                         />
                       ) : (
-                        <div className="w-full h-full bg-whisper-gray flex items-center justify-center" style={{ minHeight: "120px" }}>
-                          <span className="text-4xl">🏛️</span>
+                        <div className="w-full h-full flex items-center justify-center bg-[#f0ece6]" style={{ minHeight: "130px" }}>
+                          <svg width="44" height="44" viewBox="0 0 36 36" fill="none" opacity="0.35">
+                            <line x1="4" y1="30" x2="32" y2="30" stroke="#7C6A55" strokeWidth="2" strokeLinecap="round"/>
+                            <line x1="10" y1="30" x2="10" y2="18" stroke="#7C6A55" strokeWidth="2" strokeLinecap="round"/>
+                            <line x1="18" y1="30" x2="18" y2="18" stroke="#7C6A55" strokeWidth="2" strokeLinecap="round"/>
+                            <line x1="26" y1="30" x2="26" y2="18" stroke="#7C6A55" strokeWidth="2" strokeLinecap="round"/>
+                            <line x1="6" y1="18" x2="30" y2="18" stroke="#7C6A55" strokeWidth="2" strokeLinecap="round"/>
+                            <polyline points="4,16 18,7 32,16" stroke="#7C6A55" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
                         </div>
                       )}
                     </div>
