@@ -123,9 +123,9 @@ export function HomePage() {
                   <div className="flex gap-0">
                     {/* Foto */}
                     <div className="w-36 shrink-0 self-stretch">
-                      {m.image_url ? (
+                      {m.reference_image_url ? (
                         <img
-                          src={m.image_url}
+                          src={m.reference_image_url}
                           alt={m.name}
                           className="w-full h-full object-cover"
                           style={{ minHeight: "120px" }}
