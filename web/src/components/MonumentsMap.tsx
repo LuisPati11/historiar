@@ -24,7 +24,7 @@ export function MonumentsMap({ monuments, userLat, userLng }: Props) {
     <Map
       initialViewState={{ longitude: centerLng, latitude: centerLat, zoom: 15 }}
       style={{ width: "100%", height: "100%" }}
-      mapStyle={`https://api.maptiler.com/maps/streets-v2/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`}
+      mapStyle={`https://api.maptiler.com/maps/019e112b-e6a2-70b0-b98e-a3582b0ab594/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`}
       onError={() => {}}
       attributionControl={false}
     >

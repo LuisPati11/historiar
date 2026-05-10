@@ -6,7 +6,7 @@ import { AvatarPicker, type AvatarId } from "../components/AvatarPicker";
 
 type Mode = "login" | "register";
 
-const HERO_URL = "https://qvevpackpwpjqgsapqws.supabase.co/storage/v1/object/public/monument-images/puerta-toledo.jpg";
+const HERO_URL = "https://qvevpackpwpjqgsapqws.supabase.co/storage/v1/object/public/monument-images/puerta-toledo-login.jpg";
 
 export function AuthPage() {
   const { t } = useTranslation();
@@ -74,22 +74,22 @@ export function AuthPage() {
   }
 
   return (
-    <main className="min-h-full bg-[#F5F2EE] flex flex-col">
+    <main className="h-full bg-[#F5F2EE] flex flex-col overflow-hidden">
 
       {/* Hero con gradiente */}
-      <div className="relative w-full shrink-0" style={{ height: "42vh", minHeight: "220px" }}>
-        <img src={HERO_URL} alt="HistoriAR" className="w-full h-full object-cover object-top" />
+      <div className="relative w-full shrink-0" style={{ height: mode === "register" ? "25vh" : "40vh", minHeight: mode === "register" ? "140px" : "200px" }}>
+        <img src={HERO_URL} alt="HistoriAR" className="w-full h-full object-cover" style={{ objectPosition: "70% 38%" }} />
         <div className="absolute inset-0" style={{
           background: "linear-gradient(to bottom, transparent 30%, #F5F2EE 100%)"
         }} />
       </div>
 
       {/* Contenido */}
-      <div className="flex-1 px-6 pb-10 -mt-4">
+      <div className="flex-1 px-6 pb-4 -mt-4 overflow-y-auto flex flex-col">
 
         {/* Logo */}
-        <div className="mb-8">
-          <div className="mb-3">
+        <div className="mb-4">
+          <div className="mb-2">
             <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
               <line x1="4" y1="30" x2="32" y2="30" stroke="#8B1A1A" strokeWidth="1.8" strokeLinecap="round"/>
               <line x1="10" y1="30" x2="10" y2="18" stroke="#8B1A1A" strokeWidth="1.8" strokeLinecap="round"/>
@@ -107,7 +107,7 @@ export function AuthPage() {
           </p>
         </div>
 
-        <form onSubmit={submit} className="flex flex-col gap-6">
+        <form onSubmit={submit} className="flex flex-col gap-4">
 
           {mode === "register" && (
             <div>
@@ -180,16 +180,13 @@ export function AuthPage() {
 
           {/* Botón principal */}
           <button type="submit" disabled={loading}
-            className="w-full rounded-full bg-pinterest-red text-canvas-white py-4 text-body font-semibold flex items-center justify-between px-6 disabled:opacity-50 active:scale-[0.98] transition-transform shadow-sm mt-2">
+            className="w-full rounded-full bg-pinterest-red text-canvas-white py-4 text-body font-semibold flex items-center justify-center gap-2 px-6 disabled:opacity-50 active:scale-[0.98] transition-transform shadow-sm mt-1">
             <span>{loading ? "…" : mode === "login" ? "Entrar" : "Crear cuenta"}</span>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M4 10h12M11 5l5 5-5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
           </button>
         </form>
 
         {/* Cambiar modo */}
-        <p className="text-center text-body-sm text-ash-gray mt-5">
+        <p className="text-center text-body-sm text-ash-gray mt-3">
           {mode === "login" ? "¿No tienes cuenta? " : "¿Ya tienes cuenta? "}
           <button onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(null); }}
             className="text-pinterest-red font-semibold">
@@ -198,14 +195,14 @@ export function AuthPage() {
         </p>
 
         {/* Divisor */}
-        <div className="flex items-center gap-3 my-6">
+        <div className="flex items-center gap-3 my-3">
           <div className="flex-1 h-px bg-[#DDD8D0]" />
           <span className="text-body-sm text-ash-gray">o</span>
           <div className="flex-1 h-px bg-[#DDD8D0]" />
         </div>
 
         {/* Explorar sin cuenta */}
-        <button onClick={() => navigate(from, { replace: true })}
+        <button onClick={() => navigate("/", { replace: true })}
           className="w-full flex items-center gap-4 active:opacity-70 transition-opacity">
           <div className="w-11 h-11 rounded-full border border-[#DDD8D0] flex items-center justify-center shrink-0">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
