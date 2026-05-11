@@ -64,7 +64,7 @@ const PODIUM = ["🥇", "🥈", "🥉"];
 function RankBadge({ rank }: { rank: number }) {
   if (rank <= 3) return <span className="text-2xl leading-none">{PODIUM[rank - 1]}</span>;
   return (
-    <span className="w-8 h-8 rounded-full bg-whisper-gray flex items-center justify-center text-xs font-bold text-ash-gray shrink-0">
+    <span className="size-8 rounded-full bg-whisper-gray flex items-center justify-center text-xs font-bold text-ash-gray shrink-0">
       {rank}
     </span>
   );
@@ -107,7 +107,7 @@ function RankingTab() {
 
   if (loading) return (
     <div className="flex flex-col items-center pt-16 gap-3">
-      <div className="w-8 h-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
+      <div className="size-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
       <p className="text-body-sm text-ash-gray">{t("collections.loading_ranking")}</p>
     </div>
   );
@@ -212,7 +212,7 @@ export function CollectionsPage() {
           )}
           {loading && (
             <div className="flex flex-col items-center pt-16 gap-3">
-              <div className="w-8 h-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
+              <div className="size-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
               <p className="text-body-sm text-ash-gray">{t("collections.loading")}</p>
             </div>
           )}

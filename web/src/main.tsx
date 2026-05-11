@@ -20,7 +20,7 @@ const MonumentDetailPage = lazy(() => import("./pages/MonumentDetailPage").then(
 function RouteFallback() {
   return (
     <main className="min-h-full flex items-center justify-center bg-canvas-white">
-      <div className="w-9 h-9 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
+      <div className="size-9 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
     </main>
   );
 }

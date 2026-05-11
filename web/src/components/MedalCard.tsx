@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 interface Props {
@@ -288,7 +288,7 @@ export function MedalModal({
         {/* Botón cerrar */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center"
+          className="absolute top-4 right-4 size-8 flex items-center justify-center"
           aria-label={t("common.close")}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -334,7 +334,7 @@ export function MedalModal({
           <div className="w-full rounded-2xl bg-canvas-white border border-whisper-gray p-4 mb-5">
             <div className="flex items-center gap-3">
               {/* Icono */}
-              <div className="w-12 h-12 rounded-full bg-[#F5F2EE] flex items-center justify-center shrink-0">
+              <div className="size-12 rounded-full bg-[#F5F2EE] flex items-center justify-center shrink-0">
                 <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
                   <path d="M11 3L5 7v12h4v-5h4v5h4V7L11 3z" stroke="#9E9E9E" strokeWidth="1.4" fill="none" strokeLinejoin="round"/>
                   <path d="M9 14v-3h4v3" stroke="#9E9E9E" strokeWidth="1.3" fill="none"/>
@@ -397,21 +397,35 @@ interface CelebrationProps {
   onClose: () => void;
 }
 
+const PARTICLE_COUNT = 18;
+
 export function MedalCelebration({ imageUrl, name, description, tier, earnedAt, onClose }: CelebrationProps) {
   const { t } = useTranslation();
+  const particles = useMemo(
+    () => Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      delay: Math.random() * 2,
+      duration: 1.5 + Math.random() * 2,
+      opacity: 0.4 + Math.random() * 0.6,
+    })),
+    [],
+  );
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-jet-black/90 backdrop-blur-lg px-6">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {Array.from({ length: 18 }).map((_, i) => (
+        {particles.map((p) => (
           <div
-            key={i}
-            className="absolute w-1 h-1 rounded-full bg-amber-400 animate-ping"
+            key={p.id}
+            className="absolute size-1 rounded-full bg-amber-400 animate-ping"
             style={{
-              left: `${Math.random() * 100}%`,
-              top:  `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 2}s`,
-              animationDuration: `${1.5 + Math.random() * 2}s`,
-              opacity: 0.4 + Math.random() * 0.6,
+              left: `${p.left}%`,
+              top:  `${p.top}%`,
+              animationDelay: `${p.delay}s`,
+              animationDuration: `${p.duration}s`,
+              opacity: p.opacity,
             }}
           />
         ))}

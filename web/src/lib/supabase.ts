@@ -82,20 +82,6 @@ export async function getMonument(id: string, locale: "es" | "en" = "es"): Promi
   };
 }
 
-export async function feedForMe(limit = 50) {
-  const { data, error } = await supabase.rpc("feed_for_me", { p_limit: limit });
-  if (error) throw error;
-  return data as Array<{
-    id: string;
-    user_id: string;
-    user_name: string;
-    type: "visit" | "medal_earned" | "collection_completed";
-    monument_id: string | null;
-    medal_id: string | null;
-    created_at: string;
-  }>;
-}
-
 export interface UserMedal {
   medal_id: string;
   earned_at: string;

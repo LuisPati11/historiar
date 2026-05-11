@@ -35,7 +35,7 @@ export function GyroPermissionBanner() {
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-40 rounded-2xl bg-canvas-white border border-whisper-gray shadow-lg px-4 py-3 flex items-center gap-3">
-      <div className="w-10 h-10 rounded-full bg-[#F5F2EE] flex items-center justify-center shrink-0">
+      <div className="size-10 rounded-full bg-[#F5F2EE] flex items-center justify-center shrink-0">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M3.5 10C3.5 6.41 6.41 3.5 10 3.5M10 3.5L8 1.5M10 3.5L8 5.5" stroke="#9E9E9E" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
           <path d="M16.5 10C16.5 13.59 13.59 16.5 10 16.5M10 16.5L12 18.5M10 16.5L12 14.5" stroke="#9E9E9E" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>

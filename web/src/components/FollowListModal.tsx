@@ -18,7 +18,7 @@ export function FollowListModal({ type, users, onClose }: Props) {
       <div className="bg-canvas-white rounded-t-3xl w-full max-w-md max-h-[70vh] flex flex-col">
         <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-whisper-gray">
           <h3 className="text-subheading font-bold text-jet-black">{t(`profile.${type}`)}</h3>
-          <button onClick={onClose} className="text-ash-gray text-xl w-8 h-8 flex items-center justify-center">×</button>
+          <button onClick={onClose} className="text-ash-gray text-xl size-8 flex items-center justify-center">×</button>
         </div>
         <ul className="overflow-y-auto flex-1 px-4 py-3 space-y-1">
           {users.map((u) => (

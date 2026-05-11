@@ -58,7 +58,7 @@ export function ScanPage() {
       <div className="flex items-center justify-between p-4 z-10">
         <button
           onClick={() => navigate(-1)}
-          className="rounded-full bg-jet-black/60 backdrop-blur w-10 h-10 flex items-center justify-center"
+          className="rounded-full bg-jet-black/60 backdrop-blur size-10 flex items-center justify-center"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <path d="M11 4L6 9l5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -75,11 +75,11 @@ export function ScanPage() {
         {/* Marco QR */}
         {scanning && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-64 h-64 relative">
-              <span className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-pinterest-red rounded-tl-lg" />
-              <span className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-pinterest-red rounded-tr-lg" />
-              <span className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-pinterest-red rounded-bl-lg" />
-              <span className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-pinterest-red rounded-br-lg" />
+            <div className="size-64 relative">
+              <span className="absolute top-0 left-0 size-8 border-t-2 border-l-2 border-pinterest-red rounded-tl-lg" />
+              <span className="absolute top-0 right-0 size-8 border-t-2 border-r-2 border-pinterest-red rounded-tr-lg" />
+              <span className="absolute bottom-0 left-0 size-8 border-b-2 border-l-2 border-pinterest-red rounded-bl-lg" />
+              <span className="absolute bottom-0 right-0 size-8 border-b-2 border-r-2 border-pinterest-red rounded-br-lg" />
             </div>
           </div>
         )}
@@ -95,7 +95,7 @@ export function ScanPage() {
             <button
               onClick={startScanner}
               disabled={started}
-              className="w-20 h-20 rounded-full bg-canvas-white/15 border-2 border-canvas-white/40 flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
+              className="size-20 rounded-full bg-canvas-white/15 border-2 border-canvas-white/40 flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
             >
               <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
                 <path d="M14 10l12 8-12 8V10z" fill="white"/>

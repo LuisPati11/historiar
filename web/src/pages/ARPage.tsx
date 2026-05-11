@@ -130,7 +130,7 @@ export function ARPage() {
         <button
           onClick={closeExperience}
           aria-label={t("common.close")}
-          className="rounded-full bg-jet-black/60 backdrop-blur w-10 h-10 flex items-center justify-center text-canvas-white text-xl"
+          className="rounded-full bg-jet-black/60 backdrop-blur size-10 flex items-center justify-center text-canvas-white text-xl"
         >
           ×
         </button>
@@ -144,7 +144,7 @@ export function ARPage() {
           <>
             {(gpsStatus === "loading" || gpsStatus === "checking") && (
               <div className="flex flex-col items-center gap-3 text-center">
-                <div className="w-12 h-12 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
+                <div className="size-12 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
                 <p className="text-body text-ash-gray">
                   {gpsStatus === "loading" ? t("ar.loading") : t("ar.gps_checking")}
                 </p>

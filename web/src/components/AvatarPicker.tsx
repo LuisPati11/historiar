@@ -25,7 +25,7 @@ export function AvatarPicker({ selected, onSelect }: Props) {
           type="button"
           onClick={() => onSelect(a.id)}
           aria-label={t(a.labelKey)}
-          className={`relative w-16 h-16 rounded-full overflow-hidden transition-all active:scale-95 ${
+          className={`relative size-16 rounded-full overflow-hidden transition-all active:scale-95 ${
             selected === a.id
               ? "ring-4 ring-pinterest-red ring-offset-2 scale-105"
               : "ring-2 ring-whisper-gray opacity-70 hover:opacity-100"
@@ -64,7 +64,7 @@ export function AvatarImage({
   className?: string;
 }) {
   const { t } = useTranslation();
-  const sizeClass = { sm: "w-8 h-8", md: "w-10 h-10", lg: "w-16 h-16", xl: "w-20 h-20" }[size];
+  const sizeClass = { sm: "size-8", md: "size-10", lg: "size-16", xl: "size-20" }[size];
   const avatar = AVATARS.find((a) => a.id === avatarId);
 
   return (

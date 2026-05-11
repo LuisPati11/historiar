@@ -68,7 +68,7 @@ export function UserProfilePage() {
   if (loading) {
     return (
       <main className="min-h-full flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
+        <div className="size-10 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
       </main>
     );
   }

@@ -194,7 +194,7 @@ export function HomePage() {
           {/* Spinner buscando GPS */}
           {gpsState === "searching" && (
             <div className="flex flex-col items-center pt-16 gap-3">
-              <div className="w-8 h-8 rounded-full border-[3px] border-ash-gray border-t-transparent animate-spin" />
+              <div className="size-8 rounded-full border-[3px] border-ash-gray border-t-transparent animate-spin" />
               <p className="text-body text-ash-gray">{t("home.searching")}</p>
             </div>
           )}
@@ -316,7 +316,7 @@ export function HomePage() {
           ) : (
             <Suspense fallback={
               <div className="w-full h-full flex items-center justify-center bg-canvas-white rounded-3xl">
-                <div className="w-8 h-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
+                <div className="size-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
               </div>
             }>
               <MonumentsMap monuments={allMonuments} userLat={userLat} userLng={userLng} />

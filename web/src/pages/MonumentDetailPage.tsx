@@ -54,7 +54,7 @@ export function MonumentDetailPage() {
   if (loading) {
     return (
       <div className="min-h-full flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
+        <div className="size-10 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -101,7 +101,7 @@ export function MonumentDetailPage() {
         {/* Botón volver */}
         <button
           onClick={() => navigate(-1)}
-          className="absolute top-12 left-4 w-10 h-10 rounded-full bg-canvas-white shadow-md flex items-center justify-center"
+          className="absolute top-12 left-4 size-10 rounded-full bg-canvas-white shadow-md flex items-center justify-center"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <path d="M11 4L6 9l5 5" stroke="#1A1A1A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -179,7 +179,7 @@ export function MonumentDetailPage() {
                 <div key={p.id} className="flex items-center gap-0 shrink-0">
                   {/* Card */}
                   <div className="w-40 rounded-2xl bg-[#FAF8F5] border border-[#EDE9E3] p-4 flex flex-col gap-2">
-                    <div className="w-9 h-9 rounded-full bg-canvas-white border border-[#EDE9E3] flex items-center justify-center">
+                    <div className="size-9 rounded-full bg-canvas-white border border-[#EDE9E3] flex items-center justify-center">
                       <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                         <rect x="1" y="13" width="16" height="2" rx="0.5" stroke="#9E9E9E" strokeWidth="1.2"/>
                         <line x1="4" y1="13" x2="4" y2="8" stroke="#9E9E9E" strokeWidth="1.2" strokeLinecap="round"/>
@@ -200,9 +200,9 @@ export function MonumentDetailPage() {
                   {/* Conector */}
                   {i < monument.periods.length - 1 && (
                     <div className="flex items-center px-1">
-                      <div className="w-2 h-2 rounded-full bg-[#D4C9BB]" />
+                      <div className="size-2 rounded-full bg-[#D4C9BB]" />
                       <div className="w-3 h-px bg-[#D4C9BB]" />
-                      <div className="w-2 h-2 rounded-full bg-[#D4C9BB]" />
+                      <div className="size-2 rounded-full bg-[#D4C9BB]" />
                     </div>
                   )}
                 </div>
@@ -221,7 +221,7 @@ export function MonumentDetailPage() {
               rel="noopener noreferrer"
               className="flex items-center gap-4 py-2 active:opacity-70 transition-opacity"
             >
-              <div className="w-11 h-11 rounded-2xl bg-[#FAF8F5] border border-[#EDE9E3] flex items-center justify-center shrink-0">
+              <div className="size-11 rounded-2xl bg-[#FAF8F5] border border-[#EDE9E3] flex items-center justify-center shrink-0">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <path d="M10 2a5 5 0 00-5 5c0 4 5 11 5 11s5-7 5-11a5 5 0 00-5-5z" stroke="#9E9E9E" strokeWidth="1.4" fill="none"/>
                   <circle cx="10" cy="7" r="2" stroke="#9E9E9E" strokeWidth="1.4" fill="none"/>

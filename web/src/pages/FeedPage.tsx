@@ -53,7 +53,7 @@ export function FeedPage() {
         <h1 className="text-heading font-bold text-jet-black">{t("feed.title")}</h1>
         <button
           onClick={() => navigate("/search")}
-          className="w-10 h-10 rounded-full bg-whisper-gray flex items-center justify-center text-xl"
+          className="size-10 rounded-full bg-whisper-gray flex items-center justify-center text-xl"
           aria-label={t("feed.search_explorers")}
         >
           🔍
@@ -62,7 +62,7 @@ export function FeedPage() {
 
       {fetching && (
         <div className="flex flex-col items-center pt-16 gap-3">
-          <div className="w-8 h-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
+          <div className="size-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
           <p className="text-body-sm text-ash-gray">{t("feed.loading")}</p>
         </div>
       )}

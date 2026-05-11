@@ -98,7 +98,7 @@ export function ProfilePage() {
   if (loading || dataLoading) {
     return (
       <main className="min-h-full flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
+        <div className="size-10 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
       </main>
     );
   }
@@ -147,7 +147,7 @@ export function ProfilePage() {
             </div>
             <button
               onClick={() => setEditingAvatar(true)}
-              className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-pinterest-red text-canvas-white flex items-center justify-center shadow-md"
+              className="absolute -bottom-1 -right-1 size-7 rounded-full bg-pinterest-red text-canvas-white flex items-center justify-center shadow-md"
               aria-label={t("common.change_avatar")}
             >
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
@@ -232,7 +232,7 @@ export function ProfilePage() {
                     className="w-full rounded-3xl bg-canvas-white border border-whisper-gray p-4 flex items-center gap-4 active:bg-whisper-gray transition-colors text-left"
                   >
                     {m.medal.image_url ? (
-                      <img src={m.medal.image_url} alt={m.medal.name} className="w-12 h-12 rounded-full object-cover shrink-0" />
+                      <img src={m.medal.image_url} alt={m.medal.name} className="size-12 rounded-full object-cover shrink-0" />
                     ) : (
                       <span className="text-3xl shrink-0">{tier?.emoji ?? "🏅"}</span>
                     )}

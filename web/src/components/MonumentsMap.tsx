@@ -41,7 +41,7 @@ export function MonumentsMap({ monuments, userLat, userLng }: Props) {
     <div className="relative h-full w-full">
       {!loaded && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-canvas-white">
-          <div className="w-8 h-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
+          <div className="size-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
           <p className="text-body-sm text-ash-gray">{t("map.loading")}</p>
         </div>
       )}
@@ -74,7 +74,7 @@ export function MonumentsMap({ monuments, userLat, userLng }: Props) {
         {/* Posición del usuario */}
         {userLat && userLng && (
           <Marker longitude={userLng} latitude={userLat} anchor="center">
-            <div className="w-4 h-4 rounded-full bg-pinterest-red border-2 border-white shadow-md" />
+            <div className="size-4 rounded-full bg-pinterest-red border-2 border-white shadow-md" />
           </Marker>
         )}
 
@@ -87,7 +87,7 @@ export function MonumentsMap({ monuments, userLat, userLng }: Props) {
             anchor="center"
             onClick={(e) => { e.originalEvent.stopPropagation(); setSelected({ monument: m }); }}
           >
-            <div className="w-10 h-10 rounded-full bg-canvas-white border-2 border-whisper-gray shadow-md flex items-center justify-center text-xl cursor-pointer hover:scale-110 transition-transform">
+            <div className="size-10 rounded-full bg-canvas-white border-2 border-whisper-gray shadow-md flex items-center justify-center text-xl cursor-pointer hover:scale-110 transition-transform">
               🏛️
             </div>
           </Marker>

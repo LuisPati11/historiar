@@ -86,7 +86,7 @@ export function BottomNav() {
         <li className="flex-1 flex justify-center pb-1">
           <button
             onClick={() => navigate("/scan")}
-            className="-mt-6 w-14 h-14 rounded-full bg-pinterest-red shadow-lg flex items-center justify-center active:scale-95 transition-transform border-4 border-canvas-white"
+            className="-mt-6 size-14 rounded-full bg-pinterest-red shadow-lg flex items-center justify-center active:scale-95 transition-transform border-4 border-canvas-white"
             aria-label={t("scan.title")}
           >
             <IconQR />

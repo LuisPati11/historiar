@@ -94,7 +94,7 @@ export function SearchPage() {
       {/* Spinner */}
       {searching && (
         <div className="flex justify-center pt-8">
-          <div className="w-7 h-7 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
+          <div className="size-7 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
         </div>
       )}
 

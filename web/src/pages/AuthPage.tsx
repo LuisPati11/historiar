@@ -223,7 +223,7 @@ export function AuthPage() {
         {/* Explorar sin cuenta */}
         <button onClick={() => navigate("/", { replace: true })}
           className="w-full flex items-center gap-4 active:opacity-70 transition-opacity">
-          <div className="w-11 h-11 rounded-full border border-[#DDD8D0] flex items-center justify-center shrink-0">
+          <div className="size-11 rounded-full border border-[#DDD8D0] flex items-center justify-center shrink-0">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <circle cx="10" cy="10" r="8" stroke="#9E9E9E" strokeWidth="1.4" fill="none"/>
               <polygon points="10,4 12,9 17,10 12,11 10,16 8,11 3,10 8,9" stroke="#9E9E9E" strokeWidth="1.2" fill="none" strokeLinejoin="round"/>
