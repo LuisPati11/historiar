@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
-import { getUserMedals, getUserVisitCount, getFollowers, getFollowing, getCollectionsProgress, getMyProfileSettings, updatePreferredLocale, type UserMedal, type FollowUser, type CollectionProgress } from "../lib/supabase";
+import { getUserMedals, getFollowers, getFollowing, getCollectionsProgress, getMyProfileSettings, updatePreferredLocale, type UserMedal, type FollowUser, type CollectionProgress } from "../lib/supabase";
 import { supabase, syncProfile } from "../lib/supabase";
 import { AvatarImage, AvatarPicker, type AvatarId } from "../components/AvatarPicker";
 import { FollowListModal } from "../components/FollowListModal";
@@ -20,7 +20,6 @@ export function ProfilePage() {
   const navigate = useNavigate();
 
   const [medals, setMedals] = useState<UserMedal[]>([]);
-  const [visitCount, setVisitCount] = useState(0);
   const [followers, setFollowers] = useState<FollowUser[]>([]);
   const [following, setFollowing] = useState<FollowUser[]>([]);
   const [collectionsProgress, setCollectionsProgress] = useState<CollectionProgress[]>([]);
@@ -37,11 +36,10 @@ export function ProfilePage() {
     if (loading) return;
     if (!user) { navigate("/auth", { state: { from: "/profile" } }); return; }
 
-    Promise.all([getUserMedals(), getUserVisitCount(), getFollowers(user.id), getFollowing(user.id), getCollectionsProgress(), getMyProfileSettings()])
-      .then(([m, v, frs, fng, cp, settings]) => {
+    Promise.all([getUserMedals(), getFollowers(user.id), getFollowing(user.id), getCollectionsProgress(), getMyProfileSettings()])
+      .then(([m, frs, fng, cp, settings]) => {
         const preferredLocale = normalizeLocale((user.user_metadata as { locale?: string } | undefined)?.locale ?? settings?.locale);
         setMedals(m);
-        setVisitCount(v);
         setFollowers(frs);
         setFollowing(fng);
         setCollectionsProgress(cp);
@@ -95,6 +93,7 @@ export function ProfilePage() {
   const selectedMedalCollection = selectedMedal
     ? collectionsProgress.find(c => c.medal_id === selectedMedal.medal_id) ?? null
     : null;
+  const collectionsCount = collectionsProgress.filter((collection) => collection.earned_at).length;
 
   if (loading || dataLoading) {
     return (
@@ -180,14 +179,14 @@ export function ProfilePage() {
         {/* Stats 2×2 */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <StatCard
-            icon={<LocationIcon />}
-            value={visitCount}
-            label={t("profile.visits")}
-          />
-          <StatCard
             icon={<MedalIcon />}
             value={medals.length}
             label={t("profile.medals")}
+          />
+          <StatCard
+            icon={<CollectionIcon />}
+            value={collectionsCount}
+            label={t("profile.collections")}
           />
           <button
             onClick={() => setShowFollowList("followers")}
@@ -314,21 +313,21 @@ function StatCard({ icon, value, label }: { icon: React.ReactNode; value: number
   );
 }
 
-function LocationIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <path d="M11 2C7.686 2 5 4.686 5 8c0 4.5 6 12 6 12s6-7.5 6-12c0-3.314-2.686-6-6-6z" stroke="#9E9E9E" strokeWidth="1.4" fill="none"/>
-      <circle cx="11" cy="8" r="2" stroke="#9E9E9E" strokeWidth="1.4" fill="none"/>
-    </svg>
-  );
-}
-
 function MedalIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
       <path d="M11 7 L8 14 L14 14 Z" stroke="#9E9E9E" strokeWidth="1.3" fill="none" strokeLinejoin="round"/>
       <circle cx="11" cy="16" r="4" stroke="#9E9E9E" strokeWidth="1.4" fill="none"/>
       <path d="M9 7 L7 2 M13 7 L15 2" stroke="#9E9E9E" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function CollectionIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <path d="M5 8.5L11 4l6 4.5v8.5H5V8.5z" stroke="#9E9E9E" strokeWidth="1.4" fill="none" strokeLinejoin="round"/>
+      <path d="M8 17v-5h6v5M7.5 10.5h7" stroke="#9E9E9E" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
