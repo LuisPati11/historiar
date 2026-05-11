@@ -115,20 +115,6 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
       */}
       <div style={{ position: "relative", width: size, height: size }}>
 
-        {/* Aura del tier — contenida para que acompañe la moneda sin superarla visualmente */}
-        <div
-          style={{
-            position: "absolute",
-            inset: "13%",
-            borderRadius: "50%",
-            background: `radial-gradient(circle, ${glowColor} 0%, transparent 64%)`,
-            filter: `blur(${6 + intensity * 6}px)`,
-            opacity: 0.24 + intensity * 0.24,
-            pointerEvents: "none",
-            transform: `translateY(${1 + intensity * 3}px)`,
-          }}
-        />
-
         {/* Perspectiva → coin rotada y clipada */}
         <div style={{ perspective: "900px", perspectiveOrigin: "50% 50%", width: "100%", height: "100%" }}>
           <div
@@ -144,6 +130,7 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
               cursor: "grab",
               position: "relative",
               userSelect: "none",
+              filter: `drop-shadow(0 ${8 + intensity * 4}px ${10 + intensity * 4}px rgba(0,0,0,0.22)) drop-shadow(0 0 ${5 + intensity * 5}px ${glowColor})`,
             }}
           >
             {/* Imagen base */}
