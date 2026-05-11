@@ -1,14 +1,10 @@
 import { useTranslation } from "react-i18next";
 
 const AVATARS = [
-  { id: "owl",    emoji: "🦉", labelKey: "avatar.owl"       },
-  { id: "fox",    emoji: "🦊", labelKey: "avatar.fox"       },
-  { id: "pigeon", emoji: "🐦", labelKey: "avatar.pigeon"    },
-  { id: "cat",    emoji: "🐱", labelKey: "avatar.cat"       },
-  { id: "dog",    emoji: "🐶", labelKey: "avatar.dog"       },
   { id: "quijote", emoji: "⚔️", labelKey: "avatar.quijote"  },
   { id: "sancho",   emoji: "🎒", labelKey: "avatar.sancho"   },
   { id: "dulcinea", emoji: "🌸", labelKey: "avatar.dulcinea" },
+  { id: "rocinante", emoji: "🐴", labelKey: "avatar.rocinante" },
 ] as const;
 
 export type AvatarId = (typeof AVATARS)[number]["id"];

@@ -175,14 +175,10 @@
     "explorer": "Explorer"
   },
   "avatar": {
-    "owl": "Wise explorer",
-    "fox": "Trail explorer",
-    "pigeon": "Message explorer",
-    "cat": "Detective explorer",
-    "dog": "Adventure explorer",
     "quijote": "Don Quixote",
     "sancho": "Sancho Panza",
-    "dulcinea": "Dulcinea"
+    "dulcinea": "Dulcinea",
+    "rocinante": "Rocinante"
   },
   "search": {
     "title": "Explore",

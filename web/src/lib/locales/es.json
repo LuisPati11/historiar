@@ -175,14 +175,10 @@
     "explorer": "Explorador"
   },
   "avatar": {
-    "owl": "Búho sabio",
-    "fox": "Zorro explorador",
-    "pigeon": "Paloma mensajera",
-    "cat": "Gato detective",
-    "dog": "Perro aventurero",
     "quijote": "Don Quijote",
     "sancho": "Sancho Panza",
-    "dulcinea": "Dulcinea"
+    "dulcinea": "Dulcinea",
+    "rocinante": "Rocinante"
   },
   "search": {
     "title": "Explorar",
