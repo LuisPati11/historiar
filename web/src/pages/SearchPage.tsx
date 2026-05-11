@@ -93,7 +93,7 @@ export function SearchPage() {
               <AvatarImage avatarId={profile.avatar_url} size="md" />
               <div className="min-w-0">
                 <p className="text-body font-semibold text-graphite truncate">{profile.display_name}</p>
-                <p className="text-body-sm text-ash-gray">{profile.display_name ? "Explorador" : ""}</p>
+                <p className="text-body-sm text-ash-gray">{profile.display_name ? t("common.explorer") : ""}</p>
               </div>
             </button>
             <button

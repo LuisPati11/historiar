@@ -129,8 +129,8 @@ export function HomePage() {
             <polyline points="4,16 18,7 32,16" stroke="#1A1A1A" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           <div>
-            <h1 className="text-heading font-bold text-jet-black leading-tight">Explora</h1>
-            <p className="text-body-sm text-ash-gray">Monumentos cerca de ti</p>
+            <h1 className="text-heading font-bold text-jet-black leading-tight">{t("home.title")}</h1>
+            <p className="text-body-sm text-ash-gray">{t("app.tagline")}</p>
           </div>
         </div>
         {user ? (
@@ -139,7 +139,7 @@ export function HomePage() {
           </Link>
         ) : (
           <Link to="/auth" className="rounded-2xl bg-canvas-white border border-whisper-gray text-jet-black px-4 py-2 text-body font-medium shadow-sm">
-            Entrar
+            {t("home.sign_in")}
           </Link>
         )}
       </header>
@@ -156,7 +156,7 @@ export function HomePage() {
               <line x1="1" y1="8" x2="15" y2="8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               <line x1="1" y1="12" x2="15" y2="12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-            Lista
+            {t("home.list")}
           </button>
           <button
             onClick={() => setView("map")}
@@ -167,7 +167,7 @@ export function HomePage() {
               <line x1="6" y1="1" x2="6" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               <line x1="10" y1="3" x2="10" y2="15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-            Mapa
+            {t("home.map")}
           </button>
         </div>
       </div>
@@ -188,7 +188,7 @@ export function HomePage() {
             <EmptyState
               icon="📍"
               title={t("home.location_denied")}
-              hint="Ve a Ajustes > Privacidad > Ubicación y permite el acceso a tu navegador."
+              hint={t("home.location_denied_hint")}
               action={{ label: t("home.see_map"), onClick: () => setView("map") }}
             />
           )}
@@ -198,8 +198,8 @@ export function HomePage() {
             <EmptyState
               icon="⏱️"
               title={t("home.location_timeout")}
-              hint="Sal al exterior e inténtalo de nuevo."
-              action={{ label: "Reintentar", onClick: () => window.location.reload() }}
+              hint={t("home.location_timeout_hint")}
+              action={{ label: t("home.retry"), onClick: () => window.location.reload() }}
             />
           )}
 
@@ -208,7 +208,7 @@ export function HomePage() {
             <EmptyState
               icon="🧭"
               title={t("home.no_geolocation")}
-              hint="Prueba a abrirla en un dispositivo móvil."
+              hint={t("home.no_geolocation_hint")}
               action={{ label: t("home.see_map"), onClick: () => setView("map") }}
             />
           )}
@@ -279,7 +279,7 @@ export function HomePage() {
                           <rect x="13" y="4" width="3" height="3" fill="currentColor" rx="0.3"/>
                           <rect x="4" y="13" width="3" height="3" fill="currentColor" rx="0.3"/>
                         </svg>
-                        <p className="text-body-sm text-ash-gray">Escanea el código QR<br/>junto al monumento</p>
+                        <p className="text-body-sm text-ash-gray">{t("home.scan_qr_hint")}</p>
                       </div>
                     </div>
                   </div>

@@ -1,12 +1,14 @@
+import { useTranslation } from "react-i18next";
+
 const AVATARS = [
-  { id: "owl",    emoji: "🦉", label: "Búho sabio"       },
-  { id: "fox",    emoji: "🦊", label: "Zorro explorador" },
-  { id: "pigeon", emoji: "🐦", label: "Paloma mensajera" },
-  { id: "cat",    emoji: "🐱", label: "Gato detective"   },
-  { id: "dog",    emoji: "🐶", label: "Perro aventurero" },
-  { id: "quijote", emoji: "⚔️", label: "Don Quijote"     },
-  { id: "sancho",   emoji: "🎒", label: "Sancho Panza"    },
-  { id: "dulcinea", emoji: "🌸", label: "Dulcinea"        },
+  { id: "owl",    emoji: "🦉", labelKey: "avatar.owl"       },
+  { id: "fox",    emoji: "🦊", labelKey: "avatar.fox"       },
+  { id: "pigeon", emoji: "🐦", labelKey: "avatar.pigeon"    },
+  { id: "cat",    emoji: "🐱", labelKey: "avatar.cat"       },
+  { id: "dog",    emoji: "🐶", labelKey: "avatar.dog"       },
+  { id: "quijote", emoji: "⚔️", labelKey: "avatar.quijote"  },
+  { id: "sancho",   emoji: "🎒", labelKey: "avatar.sancho"   },
+  { id: "dulcinea", emoji: "🌸", labelKey: "avatar.dulcinea" },
 ] as const;
 
 export type AvatarId = (typeof AVATARS)[number]["id"];
@@ -17,6 +19,8 @@ interface Props {
 }
 
 export function AvatarPicker({ selected, onSelect }: Props) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex justify-center gap-3 flex-wrap">
       {AVATARS.map((a) => (
@@ -24,7 +28,7 @@ export function AvatarPicker({ selected, onSelect }: Props) {
           key={a.id}
           type="button"
           onClick={() => onSelect(a.id)}
-          aria-label={a.label}
+          aria-label={t(a.labelKey)}
           className={`relative w-16 h-16 rounded-full overflow-hidden transition-all active:scale-95 ${
             selected === a.id
               ? "ring-4 ring-pinterest-red ring-offset-2 scale-105"
@@ -33,7 +37,7 @@ export function AvatarPicker({ selected, onSelect }: Props) {
         >
           <img
             src={`/avatars/${a.id}.png`}
-            alt={a.label}
+            alt={t(a.labelKey)}
             className="w-full h-full object-cover scale-[1.18]"
             onError={(e) => {
               // fallback emoji mientras no hay imagen real
@@ -63,6 +67,7 @@ export function AvatarImage({
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 }) {
+  const { t } = useTranslation();
   const sizeClass = { sm: "w-8 h-8", md: "w-10 h-10", lg: "w-16 h-16", xl: "w-20 h-20" }[size];
   const avatar = AVATARS.find((a) => a.id === avatarId);
 
@@ -72,7 +77,7 @@ export function AvatarImage({
         <>
           <img
             src={`/avatars/${avatarId}.png`}
-            alt={avatar?.label ?? "Avatar"}
+            alt={avatar ? t(avatar.labelKey) : "Avatar"}
             className="w-full h-full object-cover scale-[1.18]"
             onError={(e) => {
               const el = e.currentTarget;

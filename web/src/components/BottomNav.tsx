@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 function IconHome({ active }: { active: boolean }) {
   return (
@@ -58,6 +59,7 @@ function IconQR() {
 }
 
 export function BottomNav() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   return (
@@ -68,7 +70,7 @@ export function BottomNav() {
           <NavLink to="/" end className={({ isActive }) =>
             `flex flex-col items-center justify-center py-3 gap-1 transition-colors ${isActive ? "text-pinterest-red" : "text-ash-gray"}`
           }>
-            {({ isActive }) => (<><IconHome active={isActive}/><span className={`text-[11px] font-medium ${isActive ? "text-pinterest-red" : "text-ash-gray"}`}>Inicio</span></>)}
+            {({ isActive }) => (<><IconHome active={isActive}/><span className={`text-[11px] font-medium ${isActive ? "text-pinterest-red" : "text-ash-gray"}`}>{t("nav.home")}</span></>)}
           </NavLink>
         </li>
 
@@ -85,7 +87,7 @@ export function BottomNav() {
           <button
             onClick={() => navigate("/scan")}
             className="-mt-6 w-14 h-14 rounded-full bg-pinterest-red shadow-lg flex items-center justify-center active:scale-95 transition-transform border-4 border-canvas-white"
-            aria-label="Escanear QR"
+            aria-label={t("scan.title")}
           >
             <IconQR />
           </button>
@@ -95,7 +97,7 @@ export function BottomNav() {
           <NavLink to="/collections" className={({ isActive }) =>
             `flex flex-col items-center justify-center py-3 gap-1 transition-colors ${isActive ? "text-pinterest-red" : "text-ash-gray"}`
           }>
-            {({ isActive }) => (<><IconTrophy active={isActive}/><span className={`text-[11px] font-medium ${isActive ? "text-pinterest-red" : "text-ash-gray"}`}>Logros</span></>)}
+            {({ isActive }) => (<><IconTrophy active={isActive}/><span className={`text-[11px] font-medium ${isActive ? "text-pinterest-red" : "text-ash-gray"}`}>{t("nav.achievements")}</span></>)}
           </NavLink>
         </li>
 
@@ -103,7 +105,7 @@ export function BottomNav() {
           <NavLink to="/profile" className={({ isActive }) =>
             `flex flex-col items-center justify-center py-3 gap-1 transition-colors ${isActive ? "text-pinterest-red" : "text-ash-gray"}`
           }>
-            {({ isActive }) => (<><IconUser active={isActive}/><span className={`text-[11px] font-medium ${isActive ? "text-pinterest-red" : "text-ash-gray"}`}>Perfil</span></>)}
+            {({ isActive }) => (<><IconUser active={isActive}/><span className={`text-[11px] font-medium ${isActive ? "text-pinterest-red" : "text-ash-gray"}`}>{t("nav.profile")}</span></>)}
           </NavLink>
         </li>
 

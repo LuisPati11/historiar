@@ -114,7 +114,7 @@ export function AuthPage() {
             Histori<span className="text-pinterest-red">AR</span>
           </h1>
           <p className="text-body text-ash-gray mt-1">
-            {mode === "login" ? "Explora la historia\na tu alrededor" : "Crea tu cuenta de explorador"}
+            {mode === "login" ? t("auth.login_hero") : t("auth.register_hero")}
           </p>
         </div>
 
@@ -122,7 +122,7 @@ export function AuthPage() {
 
           {mode === "register" && (
             <div>
-              <label className="block text-body-sm font-semibold text-graphite mb-2">Nombre de explorador</label>
+              <label className="block text-body-sm font-semibold text-graphite mb-2">{t("auth.explorer_name")}</label>
               <div className="flex items-center gap-3 border-b border-[#CCC8C2] pb-2">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                   <circle cx="9" cy="6" r="3.5" stroke="#9E9E9E" strokeWidth="1.3" fill="none"/>
@@ -137,7 +137,7 @@ export function AuthPage() {
 
           {/* Email */}
           <div>
-            <label className="block text-body-sm font-semibold text-graphite mb-2">Email</label>
+            <label className="block text-body-sm font-semibold text-graphite mb-2">{t("auth.email")}</label>
             <div className="flex items-center gap-3 border-b border-[#CCC8C2] pb-2">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <rect x="2" y="4" width="14" height="10" rx="1.5" stroke="#9E9E9E" strokeWidth="1.3" fill="none"/>
@@ -151,7 +151,7 @@ export function AuthPage() {
 
           {/* Contraseña */}
           <div>
-            <label className="block text-body-sm font-semibold text-graphite mb-2">Contraseña</label>
+            <label className="block text-body-sm font-semibold text-graphite mb-2">{t("auth.password")}</label>
             <div className="flex items-center gap-3 border-b border-[#CCC8C2] pb-2">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <rect x="4" y="8" width="10" height="7" rx="1.5" stroke="#9E9E9E" strokeWidth="1.3" fill="none"/>
@@ -200,23 +200,23 @@ export function AuthPage() {
           {/* Botón principal */}
           <button type="submit" disabled={loading}
             className="w-full rounded-full bg-pinterest-red text-canvas-white py-4 text-body font-semibold flex items-center justify-center gap-2 px-6 disabled:opacity-50 active:scale-[0.98] transition-transform shadow-sm mt-1">
-            <span>{loading ? "…" : mode === "login" ? "Entrar" : "Crear cuenta"}</span>
+            <span>{loading ? "…" : mode === "login" ? t("auth.login") : t("auth.register_cta")}</span>
           </button>
         </form>
 
         {/* Cambiar modo */}
         <p className="text-center text-body-sm text-ash-gray mt-3">
-          {mode === "login" ? "¿No tienes cuenta? " : "¿Ya tienes cuenta? "}
+          {mode === "login" ? t("auth.no_account") : t("auth.has_account")}
           <button onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(null); }}
             className="text-pinterest-red font-semibold">
-            {mode === "login" ? "Crear cuenta" : "Iniciar sesión"} →
+            {mode === "login" ? t("auth.register_cta") : t("auth.login_cta")} →
           </button>
         </p>
 
         {/* Divisor */}
         <div className="flex items-center gap-3 my-3">
           <div className="flex-1 h-px bg-[#DDD8D0]" />
-          <span className="text-body-sm text-ash-gray">o</span>
+          <span className="text-body-sm text-ash-gray">{t("auth.or")}</span>
           <div className="flex-1 h-px bg-[#DDD8D0]" />
         </div>
 
@@ -230,8 +230,8 @@ export function AuthPage() {
             </svg>
           </div>
           <div className="flex-1 text-left">
-            <p className="text-body font-semibold text-jet-black">Explorar sin cuenta</p>
-            <p className="text-body-sm text-ash-gray">Descubre monumentos y vive la experiencia AR</p>
+            <p className="text-body font-semibold text-jet-black">{t("auth.explore_guest_title")}</p>
+            <p className="text-body-sm text-ash-gray">{t("auth.explore_guest_hint")}</p>
           </div>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M6 3l5 5-5 5" stroke="#9E9E9E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

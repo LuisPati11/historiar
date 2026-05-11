@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { getMonumentDetail, type MonumentDetail } from "../lib/supabase";
 import { currentLocale } from "../lib/i18n";
 
-function formatYear(y: number | null): string {
+function formatYear(y: number | null, t: (key: string, options?: Record<string, unknown>) => string): string {
   if (y === null) return "";
-  if (y < 0) return `${Math.abs(y)} a.C.`;
-  if (y < 1000) return `s. ${Math.ceil(y / 100)}`;
+  if (y < 0) return t("monument.bc", { year: Math.abs(y) });
+  if (y < 1000) return t("monument.century", { century: Math.ceil(y / 100) });
   return String(y);
 }
 
@@ -27,6 +28,7 @@ function walkMinutes(m: number) {
 }
 
 export function MonumentDetailPage() {
+  const { t } = useTranslation();
   const { monumentId } = useParams<{ monumentId: string }>();
   const navigate = useNavigate();
   const [monument, setMonument] = useState<MonumentDetail | null>(null);
@@ -60,8 +62,8 @@ export function MonumentDetailPage() {
   if (!monument) {
     return (
       <div className="min-h-full flex flex-col items-center justify-center gap-4 px-6">
-        <p className="text-subheading font-semibold text-graphite">Monumento no encontrado</p>
-        <button onClick={() => navigate(-1)} className="text-pinterest-red text-body font-medium">Volver</button>
+        <p className="text-subheading font-semibold text-graphite">{t("monument.not_found")}</p>
+        <button onClick={() => navigate(-1)} className="text-pinterest-red text-body font-medium">{t("nav.back")}</button>
       </div>
     );
   }
@@ -158,7 +160,7 @@ export function MonumentDetailPage() {
                 onClick={() => setShowFullDesc(v => !v)}
                 className="text-body-sm font-semibold text-amber-700 mt-1 flex items-center gap-1"
               >
-                {showFullDesc ? "Leer menos" : "Leer historia"}
+                {showFullDesc ? t("monument.read_less") : t("monument.read_story")}
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path d={showFullDesc ? "M3 9L7 5l4 4" : "M3 5l4 4 4-4"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -171,7 +173,7 @@ export function MonumentDetailPage() {
         {monument.periods.length > 0 && (
           <>
             <div className="h-px bg-whisper-gray my-4" />
-            <h2 className="text-subheading font-bold text-jet-black mb-4">Historia</h2>
+            <h2 className="text-subheading font-bold text-jet-black mb-4">{t("monument.history")}</h2>
             <div className="flex gap-3 overflow-x-auto pb-3 -mx-5 px-5" style={{ scrollbarWidth: "none" }}>
               {monument.periods.map((p, i) => (
                 <div key={p.id} className="flex items-center gap-0 shrink-0">
@@ -188,7 +190,7 @@ export function MonumentDetailPage() {
                       </svg>
                     </div>
                     {(p.year_from !== null) && (
-                      <p className="text-[1.1rem] font-black text-amber-700 leading-none">{formatYear(p.year_from)}</p>
+                      <p className="text-[1.1rem] font-black text-amber-700 leading-none">{formatYear(p.year_from, t)}</p>
                     )}
                     <p className="text-body font-bold text-jet-black leading-snug">{p.title}</p>
                     {p.description && (
@@ -226,9 +228,9 @@ export function MonumentDetailPage() {
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-body font-semibold text-jet-black">Cómo llegar</p>
+                <p className="text-body font-semibold text-jet-black">{t("monument.directions")}</p>
                 {distanceM !== null && (
-                  <p className="text-body-sm text-ash-gray">{walkMinutes(distanceM)} min andando · {formatDist(distanceM)}</p>
+                  <p className="text-body-sm text-ash-gray">{t("monument.walking", { minutes: walkMinutes(distanceM), distance: formatDist(distanceM) })}</p>
                 )}
               </div>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -243,7 +245,7 @@ export function MonumentDetailPage() {
       <div className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-canvas-white/95 backdrop-blur">
         {distanceM !== null && distanceM > 500 && (
           <p className="text-center text-body-sm text-ash-gray mb-2">
-            📍 Estás a {formatDist(distanceM)} — acércate al monumento para activar la AR
+            {t("monument.far_hint", { distance: formatDist(distanceM) })}
           </p>
         )}
         <button
@@ -263,11 +265,11 @@ export function MonumentDetailPage() {
             <rect x="22.5" y="22.5" width="3.5" height="3.5" fill="white" rx="0.4"/>
           </svg>
           <div className="text-left">
-            <p className="text-body font-bold leading-tight">Iniciar experiencia AR</p>
+            <p className="text-body font-bold leading-tight">{t("monument.start_ar")}</p>
             <p className="text-body-sm opacity-75">
               {distanceM !== null && distanceM <= 500
-                ? "Estás cerca — ¡empieza ahora!"
-                : "Escanea el código QR junto al monumento"}
+                ? t("monument.near_cta")
+                : t("monument.scan_qr_cta")}
             </p>
           </div>
         </button>

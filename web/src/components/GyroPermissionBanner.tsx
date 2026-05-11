@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 const STORAGE_KEY = "gyro_permission";
 const GYRO_PERMISSION_EVENT = "gyro-permission-change";
 
 export function GyroPermissionBanner() {
+  const { t } = useTranslation();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -41,17 +43,17 @@ export function GyroPermissionBanner() {
         </svg>
       </div>
       <p className="text-body-sm text-graphite flex-1 leading-snug">
-        Activa el giroscopio para girar las medallas en 3D
+        {t("gyro.prompt")}
       </p>
       <div className="flex items-center gap-2 shrink-0">
         <button onClick={handleDismiss} className="text-body-sm text-ash-gray font-medium px-2 py-1.5">
-          Ahora no
+          {t("gyro.dismiss")}
         </button>
         <button
           onClick={handleActivate}
           className="rounded-2xl bg-pinterest-red text-canvas-white px-3 py-1.5 text-body-sm font-semibold active:scale-[0.98] transition-transform"
         >
-          Activar
+          {t("gyro.activate")}
         </button>
       </div>
     </div>

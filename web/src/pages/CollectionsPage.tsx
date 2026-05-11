@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   getCollectionsProgress, type CollectionProgress,
   getLeaderboard, getMyRank, type LeaderboardEntry,
@@ -16,6 +17,7 @@ const TIER_BAR: Record<string, string> = {
 };
 
 function CollectionCard({ c }: { c: CollectionProgress }) {
+  const { t, i18n } = useTranslation();
   const tier = TIER_BASE[c.medal_tier] ?? TIER_BASE.bronze;
   const bar  = TIER_BAR[c.medal_tier] ?? "bg-amber-500";
   const pct  = c.total_monuments > 0 ? Math.round((c.visited_monuments / c.total_monuments) * 100) : 0;
@@ -38,7 +40,7 @@ function CollectionCard({ c }: { c: CollectionProgress }) {
       <div className="mt-4">
         <div className="flex justify-between items-center mb-1.5">
           <span className="text-xs font-medium text-ash-gray">
-            {done ? "¡Completada!" : `${c.visited_monuments} de ${c.total_monuments} monumentos`}
+            {done ? t("collections.completed_badge") : t("collections.progress", { visited: c.visited_monuments, total: c.total_monuments })}
           </span>
           <span className={`text-xs font-bold ${done ? "text-yellow-600" : "text-graphite"}`}>{pct}%</span>
         </div>
@@ -48,7 +50,7 @@ function CollectionCard({ c }: { c: CollectionProgress }) {
       </div>
       {done && (
         <p className="mt-2 text-xs text-yellow-700 font-medium">
-          Conseguida el {new Date(c.earned_at!).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
+          {t("collections.earned_on", { date: new Date(c.earned_at!).toLocaleDateString(i18n.language, { day: "numeric", month: "long", year: "numeric" }) })}
         </p>
       )}
     </div>
@@ -69,6 +71,7 @@ function RankBadge({ rank }: { rank: number }) {
 }
 
 function LeaderboardRow({ entry, isMe }: { entry: LeaderboardEntry; isMe: boolean }) {
+  const { t } = useTranslation();
   return (
     <Link
       to={`/user/${entry.user_id}`}
@@ -78,10 +81,10 @@ function LeaderboardRow({ entry, isMe }: { entry: LeaderboardEntry; isMe: boolea
       <AvatarImage avatarId={entry.avatar_url} size="sm" />
       <div className="flex-1 min-w-0">
         <p className={`text-body font-semibold truncate ${isMe ? "text-graphite" : "text-graphite"}`}>
-          {entry.display_name ?? "Explorador"}
-          {isMe && <span className="ml-1.5 text-xs text-yellow-700 font-normal">· tú</span>}
+          {entry.display_name ?? t("collections.explorer")}
+          {isMe && <span className="ml-1.5 text-xs text-yellow-700 font-normal">· {t("collections.you")}</span>}
         </p>
-        <p className="text-xs text-ash-gray">{entry.visit_count} visitas · {entry.medal_count} medallas</p>
+        <p className="text-xs text-ash-gray">{t("collections.stats", { visits: entry.visit_count, medals: entry.medal_count })}</p>
       </div>
       <span className="text-body font-bold text-graphite shrink-0">{entry.medal_count} 🏅</span>
     </Link>
@@ -89,6 +92,7 @@ function LeaderboardRow({ entry, isMe }: { entry: LeaderboardEntry; isMe: boolea
 }
 
 function RankingTab() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
@@ -104,7 +108,7 @@ function RankingTab() {
   if (loading) return (
     <div className="flex flex-col items-center pt-16 gap-3">
       <div className="w-8 h-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
-      <p className="text-body-sm text-ash-gray">Cargando ranking…</p>
+      <p className="text-body-sm text-ash-gray">{t("collections.loading_ranking")}</p>
     </div>
   );
 
@@ -114,16 +118,16 @@ function RankingTab() {
     <div className="px-6 space-y-2">
       {!user && (
         <div className="rounded-2xl bg-whisper-gray px-4 py-3 text-body text-graphite mb-4">
-          <button onClick={() => navigate("/auth")} className="font-semibold text-pinterest-red underline">Inicia sesión</button>
-          {" "}para aparecer en el ranking.
+          <button onClick={() => navigate("/auth")} className="font-semibold text-pinterest-red underline">{t("auth.login_cta")}</button>
+          {" "}{t("collections.sign_in_ranking")}
         </div>
       )}
 
       {entries.length === 0 ? (
         <div className="flex flex-col items-center py-16 gap-3 text-center">
           <span className="text-5xl">🏆</span>
-          <p className="text-subheading font-semibold text-graphite">Sin exploradores aún</p>
-          <p className="text-body text-ash-gray max-w-xs">Sé el primero en visitar monumentos y aparecer aquí.</p>
+          <p className="text-subheading font-semibold text-graphite">{t("collections.empty_ranking_title")}</p>
+          <p className="text-body text-ash-gray max-w-xs">{t("collections.empty_ranking_hint")}</p>
         </div>
       ) : (
         <>
@@ -134,14 +138,14 @@ function RankingTab() {
           {/* Tu posición si no estás en el top 50 */}
           {user && !meInTop && myRank && (
             <div className="pt-2">
-              <p className="text-xs text-center text-ash-gray pb-2">Tu posición</p>
+              <p className="text-xs text-center text-ash-gray pb-2">{t("collections.your_position")}</p>
               <div className="flex items-center gap-3 rounded-2xl px-4 py-3 bg-highlight-yellow/30 border border-yellow-300">
                 <RankBadge rank={myRank} />
                 <AvatarImage avatarId={(user.user_metadata as { avatar?: string })?.avatar} size="sm" />
                 <div className="flex-1 min-w-0">
                   <p className="text-body font-semibold text-graphite truncate">
-                    {(user.user_metadata as { username?: string })?.username ?? "Tú"}
-                    <span className="ml-1.5 text-xs text-yellow-700 font-normal">· tú</span>
+                    {(user.user_metadata as { username?: string })?.username ?? t("collections.you_name")}
+                    <span className="ml-1.5 text-xs text-yellow-700 font-normal">· {t("collections.you")}</span>
                   </p>
                 </div>
               </div>
@@ -158,6 +162,7 @@ function RankingTab() {
 type Tab = "collections" | "ranking";
 
 export function CollectionsPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("collections");
@@ -178,19 +183,19 @@ export function CollectionsPage() {
   return (
     <main className="min-h-full flex flex-col pb-24">
       <header className="px-6 pt-8 pb-4">
-        <h1 className="text-heading-lg font-bold text-jet-black">Logros</h1>
+        <h1 className="text-heading-lg font-bold text-jet-black">{t("collections.title")}</h1>
       </header>
 
       {/* Tabs */}
       <div className="px-6 mb-4">
         <div className="flex rounded-2xl bg-whisper-gray p-1 w-fit">
-          {(["collections", "ranking"] as Tab[]).map(t => (
+          {(["collections", "ranking"] as Tab[]).map(tabName => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`rounded-xl px-4 py-1.5 text-body font-medium transition-colors ${tab === t ? "bg-canvas-white text-jet-black shadow-sm" : "text-ash-gray"}`}
+              key={tabName}
+              onClick={() => setTab(tabName)}
+              className={`rounded-xl px-4 py-1.5 text-body font-medium transition-colors ${tab === tabName ? "bg-canvas-white text-jet-black shadow-sm" : "text-ash-gray"}`}
             >
-              {t === "collections" ? "Colecciones" : "Ranking"}
+              {tabName === "collections" ? t("collections.collections") : t("collections.ranking")}
             </button>
           ))}
         </div>
@@ -201,26 +206,26 @@ export function CollectionsPage() {
         <>
           {!user && (
             <div className="mx-6 mb-4 rounded-2xl bg-whisper-gray px-4 py-3 text-body text-graphite">
-              <button onClick={() => navigate("/auth")} className="font-semibold text-pinterest-red underline">Inicia sesión</button>
-              {" "}para ver tu progreso en cada colección.
+              <button onClick={() => navigate("/auth")} className="font-semibold text-pinterest-red underline">{t("auth.login_cta")}</button>
+              {" "}{t("collections.sign_in_progress")}
             </div>
           )}
           {loading && (
             <div className="flex flex-col items-center pt-16 gap-3">
               <div className="w-8 h-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
-              <p className="text-body-sm text-ash-gray">Cargando colecciones…</p>
+              <p className="text-body-sm text-ash-gray">{t("collections.loading")}</p>
             </div>
           )}
           {error && (
             <div className="mx-6 flex flex-col items-center py-12 text-center gap-3">
               <p className="text-4xl">📡</p>
-              <p className="text-body font-semibold text-graphite">No se pudieron cargar las colecciones</p>
-              <p className="text-body-sm text-ash-gray">Comprueba tu conexión e inténtalo de nuevo.</p>
+              <p className="text-body font-semibold text-graphite">{t("collections.load_error_title")}</p>
+              <p className="text-body-sm text-ash-gray">{t("collections.load_error_hint")}</p>
               <button
                 onClick={() => { setLoading(true); setError(null); getCollectionsProgress().then(setCollections).catch(e => setError((e as Error).message)).finally(() => setLoading(false)); }}
                 className="mt-1 rounded-full border border-whisper-gray text-graphite px-6 py-2.5 text-body font-medium"
               >
-                Reintentar
+                {t("common.retry")}
               </button>
             </div>
           )}
@@ -228,24 +233,24 @@ export function CollectionsPage() {
             <div className="px-6 space-y-4">
               {completed.length > 0 && (
                 <>
-                  <h3 className="text-body font-semibold text-ash-gray uppercase tracking-wide">Completadas</h3>
+                  <h3 className="text-body font-semibold text-ash-gray uppercase tracking-wide">{t("collections.completed")}</h3>
                   {completed.map(c => <CollectionCard key={c.collection_id} c={c} />)}
                   <div className="pt-2" />
                 </>
               )}
               {pending.length > 0 && (
                 <>
-                  {completed.length > 0 && <h3 className="text-body font-semibold text-ash-gray uppercase tracking-wide">En progreso</h3>}
+                  {completed.length > 0 && <h3 className="text-body font-semibold text-ash-gray uppercase tracking-wide">{t("collections.in_progress")}</h3>}
                   {pending.map(c => <CollectionCard key={c.collection_id} c={c} />)}
                 </>
               )}
               {collections.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
                   <span className="text-5xl">🏆</span>
-                  <p className="text-subheading font-semibold text-graphite">Sin colecciones aún</p>
-                  <p className="text-body-sm text-ash-gray max-w-xs">Visita monumentos para desbloquear colecciones y ganar medallas.</p>
+                  <p className="text-subheading font-semibold text-graphite">{t("collections.empty_title")}</p>
+                  <p className="text-body-sm text-ash-gray max-w-xs">{t("collections.empty_hint")}</p>
                   <button onClick={() => navigate("/")} className="rounded-full bg-pinterest-red text-canvas-white px-6 py-2.5 text-body font-medium">
-                    Explorar monumentos
+                    {t("collections.explore_monuments")}
                   </button>
                 </div>
               )}

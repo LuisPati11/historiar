@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   imageUrl: string;
@@ -17,17 +18,11 @@ const TIER_GLOW: Record<string, string> = {
   diamond:"rgba(100,180,255,0.7)",
 };
 
-const TIER_RARITY: Record<string, string> = {
-  bronze:  "Individual · Villa",
-  silver:  "Individual · Capital",
-  gold:    "Colección · Capital",
-  diamond: "Colección · Reino",
-};
-
 const GYRO_PERMISSION_KEY = "gyro_permission";
 const GYRO_PERMISSION_EVENT = "gyro-permission-change";
 
 export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 260, hideInfo = false }: Props) {
+  const { t, i18n } = useTranslation();
   const cardRef = useRef<HTMLDivElement>(null);
   const rafRef  = useRef<number>(0);
   const gyroCleanupRef = useRef<(() => void) | null>(null);
@@ -233,7 +228,7 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
           {description && <p className="text-body-sm text-ash-gray mt-1">{description}</p>}
           {earnedAt && (
             <p className="text-body-sm text-amber-700 font-medium mt-2">
-              Conseguida el {new Date(earnedAt).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
+              {t("medal.earned_on", { date: new Date(earnedAt).toLocaleDateString(i18n.language, { day: "numeric", month: "long", year: "numeric" }) })}
             </p>
           )}
         </div>
@@ -264,9 +259,10 @@ export function MedalModal({
   imageUrl, name, description, tier, earnedAt, onClose,
   backgroundUrl, location, collectionName, collectionProgress, collectionTotal,
 }: ModalProps) {
+  const { t, i18n } = useTranslation();
   const progressPct = collectionTotal ? ((collectionProgress ?? 0) / collectionTotal) * 100 : 0;
   const earnedFormatted = earnedAt
-    ? new Date(earnedAt).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })
+    ? new Date(earnedAt).toLocaleDateString(i18n.language, { day: "numeric", month: "long", year: "numeric" })
     : null;
 
   return (
@@ -293,7 +289,7 @@ export function MedalModal({
         <button
           onClick={onClose}
           className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center"
-          aria-label="Cerrar"
+          aria-label={t("common.close")}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M2 2l12 12M14 2L2 14" stroke="#211922" strokeWidth="1.8" strokeLinecap="round"/>
@@ -319,7 +315,7 @@ export function MedalModal({
           <svg width="12" height="13" viewBox="0 0 12 13" fill="none">
             <path d="M6 1L1 3.2V6.8C1 9.4 3.2 11.7 6 12.4C8.8 11.7 11 9.4 11 6.8V3.2L6 1Z" fill="#92400E"/>
           </svg>
-          <span className="text-body-sm font-semibold text-amber-800">{TIER_RARITY[tier] ?? "Individual"}</span>
+          <span className="text-body-sm font-semibold text-amber-800">{t(`medal.rarity.${tier}`, { defaultValue: t("medal.rarity.fallback") })}</span>
         </div>
 
         {/* Fecha */}
@@ -329,7 +325,7 @@ export function MedalModal({
               <rect x="1" y="2.5" width="13" height="11.5" rx="2" stroke="#666" strokeWidth="1.3" fill="none"/>
               <path d="M5 1V4M10 1V4M1 6h13" stroke="#666" strokeWidth="1.3" strokeLinecap="round"/>
             </svg>
-            <span className="text-body-sm text-graphite">Conseguida el {earnedFormatted}</span>
+            <span className="text-body-sm text-graphite">{t("medal.earned_on", { date: earnedFormatted })}</span>
           </div>
         )}
 
@@ -358,7 +354,7 @@ export function MedalModal({
               <div className="text-right shrink-0 ml-1">
                 <p className="text-[1.6rem] font-black text-pinterest-red leading-none">{collectionProgress}</p>
                 <p className="text-body-sm text-ash-gray leading-tight">/ {collectionTotal}</p>
-                <p className="text-[10px] text-ash-gray leading-tight mt-0.5">monumentos<br/>descubiertos</p>
+                <p className="text-[10px] text-ash-gray leading-tight mt-0.5 whitespace-pre-line">{t("medal.monuments_discovered")}</p>
               </div>
             </div>
           </div>
@@ -371,8 +367,8 @@ export function MedalModal({
             <path d="M4 13h3M23 13h3" stroke="#9E9E9E" strokeWidth="1.3" strokeLinecap="round"/>
             <path d="M5.5 11l-1.5 2 1.5 2M24.5 11l1.5 2-1.5 2" stroke="#9E9E9E" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <p className="text-body font-semibold text-graphite text-center mt-1">Gira la medalla</p>
-          <p className="text-body-sm text-ash-gray text-center">con el dedo o el móvil</p>
+          <p className="text-body font-semibold text-graphite text-center mt-1">{t("medal.rotate_title")}</p>
+          <p className="text-body-sm text-ash-gray text-center">{t("medal.rotate_hint")}</p>
         </div>
 
         <div className="flex-1" />
@@ -382,7 +378,7 @@ export function MedalModal({
           onClick={onClose}
           className="w-full rounded-full bg-pinterest-red text-canvas-white py-4 text-body font-semibold active:scale-[0.98] transition-transform shadow-sm"
         >
-          Volver
+          {t("nav.back")}
         </button>
       </div>
     </div>
@@ -402,6 +398,7 @@ interface CelebrationProps {
 }
 
 export function MedalCelebration({ imageUrl, name, description, tier, earnedAt, onClose }: CelebrationProps) {
+  const { t } = useTranslation();
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-jet-black/90 backdrop-blur-lg px-6">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -422,7 +419,7 @@ export function MedalCelebration({ imageUrl, name, description, tier, earnedAt, 
 
       <div className="relative flex flex-col items-center gap-4 w-full max-w-xs">
         <div className="rounded-full bg-amber-500/20 border border-amber-400/40 px-4 py-1.5 mb-2">
-          <p className="text-body-sm font-semibold text-amber-300 tracking-wide uppercase">✨ Nueva medalla</p>
+          <p className="text-body-sm font-semibold text-amber-300 tracking-wide uppercase">{t("medal.new_medal")}</p>
         </div>
 
         <MedalCard
@@ -438,7 +435,7 @@ export function MedalCelebration({ imageUrl, name, description, tier, earnedAt, 
           onClick={onClose}
           className="mt-2 w-full rounded-full bg-pinterest-red text-canvas-white py-4 text-body font-semibold active:scale-[0.98] transition-transform"
         >
-          ¡Genial!
+          {t("medal.great")}
         </button>
       </div>
     </div>

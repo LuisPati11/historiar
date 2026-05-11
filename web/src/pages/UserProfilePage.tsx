@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import {
   getPublicProfile, getPublicUserMedals, getPublicUserVisitCount,
@@ -11,6 +12,7 @@ import { FollowListModal } from "../components/FollowListModal";
 import { TIER_CONFIG } from "../lib/tierConfig";
 
 export function UserProfilePage() {
+  const { t } = useTranslation();
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -75,9 +77,9 @@ export function UserProfilePage() {
     return (
       <main className="min-h-full flex flex-col items-center justify-center px-6 text-center gap-3">
         <p className="text-4xl">📡</p>
-        <p className="text-subheading font-semibold text-graphite">No se pudo cargar el perfil</p>
-        <p className="text-body-sm text-ash-gray">Comprueba tu conexión e inténtalo de nuevo.</p>
-        <button onClick={() => navigate(-1)} className="mt-2 text-body-sm text-pinterest-red font-medium">← Volver</button>
+        <p className="text-subheading font-semibold text-graphite">{t("user_profile.load_error_title")}</p>
+        <p className="text-body-sm text-ash-gray">{t("common.connection_error")}</p>
+        <button onClick={() => navigate(-1)} className="mt-2 text-body-sm text-pinterest-red font-medium">← {t("nav.back")}</button>
       </main>
     );
   }
@@ -86,16 +88,16 @@ export function UserProfilePage() {
     return (
       <main className="min-h-full flex flex-col items-center justify-center px-6 text-center">
         <p className="text-4xl mb-4">🔒</p>
-        <h1 className="text-subheading font-bold text-jet-black mb-2">Perfil privado</h1>
-        <p className="text-body text-ash-gray mb-6">Este explorador mantiene su aventura en secreto.</p>
-        <button onClick={() => navigate(-1)} className="text-body-sm text-pinterest-red font-medium">← Volver</button>
+        <h1 className="text-subheading font-bold text-jet-black mb-2">{t("user_profile.private_title")}</h1>
+        <p className="text-body text-ash-gray mb-6">{t("user_profile.private_hint")}</p>
+        <button onClick={() => navigate(-1)} className="text-body-sm text-pinterest-red font-medium">← {t("nav.back")}</button>
       </main>
     );
   }
 
   return (
     <main className="min-h-full pb-8 px-6 pt-8 max-w-screen-md mx-auto">
-      <button onClick={() => navigate(-1)} className="text-ash-gray text-body-sm mb-8 block">← Volver</button>
+      <button onClick={() => navigate(-1)} className="text-ash-gray text-body-sm mb-8 block">← {t("nav.back")}</button>
 
       {/* Avatar + nombre */}
       <div className="flex items-center gap-4 mb-6">
@@ -110,7 +112,7 @@ export function UserProfilePage() {
             disabled={followLoading}
             className={`rounded-2xl px-4 py-2 text-body font-semibold shrink-0 transition-colors disabled:opacity-50 ${amFollowing ? "bg-whisper-gray text-graphite" : "bg-pinterest-red text-canvas-white"}`}
           >
-            {amFollowing ? "Siguiendo" : "Seguir"}
+            {amFollowing ? t("search.unfollow") : t("search.follow")}
           </button>
         )}
       </div>
@@ -119,30 +121,30 @@ export function UserProfilePage() {
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 text-center">
           <p className="text-heading font-bold text-jet-black">{visitCount}</p>
-          <p className="text-body-sm text-ash-gray">Visitas</p>
+          <p className="text-body-sm text-ash-gray">{t("profile.visits")}</p>
         </div>
         <div className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 text-center">
           <p className="text-heading font-bold text-jet-black">{medals.length}</p>
-          <p className="text-body-sm text-ash-gray">Medallas</p>
+          <p className="text-body-sm text-ash-gray">{t("profile.medals")}</p>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3 mb-8">
         <button onClick={() => setShowList("followers")} className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 text-center active:bg-whisper-gray transition-colors">
           <p className="text-heading font-bold text-jet-black">{followers.length}</p>
-          <p className="text-body-sm text-ash-gray">Seguidores</p>
+          <p className="text-body-sm text-ash-gray">{t("profile.followers")}</p>
         </button>
         <button onClick={() => setShowList("following")} className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 text-center active:bg-whisper-gray transition-colors">
           <p className="text-heading font-bold text-jet-black">{following.length}</p>
-          <p className="text-body-sm text-ash-gray">Siguiendo</p>
+          <p className="text-body-sm text-ash-gray">{t("profile.following")}</p>
         </button>
       </div>
 
       {/* Medallas */}
-      <h2 className="text-subheading font-bold text-jet-black mb-4">Medallas</h2>
+      <h2 className="text-subheading font-bold text-jet-black mb-4">{t("profile.medals")}</h2>
       {medals.length === 0 ? (
         <div className="rounded-3xl bg-whisper-gray px-6 py-10 text-center">
           <p className="text-4xl mb-3">🏅</p>
-          <p className="text-body text-ash-gray">Sin medallas aún</p>
+          <p className="text-body text-ash-gray">{t("profile.no_medals")}</p>
         </div>
       ) : (
         <ul className="space-y-3">

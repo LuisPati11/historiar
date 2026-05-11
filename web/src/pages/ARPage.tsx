@@ -129,7 +129,7 @@ export function ARPage() {
         </div>
         <button
           onClick={closeExperience}
-          aria-label="Cerrar"
+          aria-label={t("common.close")}
           className="rounded-full bg-jet-black/60 backdrop-blur w-10 h-10 flex items-center justify-center text-canvas-white text-xl"
         >
           ×

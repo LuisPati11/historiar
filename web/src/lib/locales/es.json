@@ -4,6 +4,14 @@
     "tagline": "Monumentos cerca de ti"
   },
   "home": {
+    "title": "Explora",
+    "list": "Lista",
+    "map": "Mapa",
+    "sign_in": "Entrar",
+    "retry": "Reintentar",
+    "location_denied_hint": "Ve a Ajustes > Privacidad > Ubicación y permite el acceso a tu navegador.",
+    "location_timeout_hint": "Sal al exterior e inténtalo de nuevo.",
+    "no_geolocation_hint": "Prueba a abrirla en un dispositivo móvil.",
     "searching": "Buscando monumentos cerca de ti…",
     "activate_ar": "Activar AR",
     "scan_qr_hint": "Escanea el código QR junto al monumento",
@@ -28,6 +36,14 @@
     "experience_ended": "¡Fin de la experiencia!"
   },
   "auth": {
+    "login_hero": "Explora la historia\na tu alrededor",
+    "register_hero": "Crea tu cuenta de explorador",
+    "explorer_name": "Nombre de explorador",
+    "explore_guest_title": "Explorar sin cuenta",
+    "explore_guest_hint": "Descubre monumentos y vive la experiencia AR",
+    "no_account": "¿No tienes cuenta? ",
+    "has_account": "¿Ya tienes cuenta? ",
+    "or": "o",
     "sign_in": "Entrar",
     "sign_out": "Cerrar sesión",
     "login": "Entrar",
@@ -51,7 +67,11 @@
   },
   "nav": {
     "back": "Volver",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "home": "Inicio",
+    "feed": "Feed",
+    "achievements": "Logros",
+    "profile": "Perfil"
   },
   "profile": {
     "my_profile": "Mi perfil",
@@ -66,8 +86,97 @@
     "language": "Idioma",
     "language_save_error": "No se pudo guardar el idioma. Inténtalo de nuevo.",
     "saving": "Guardando…",
+    "medal_location_toledo": "Ciudad Real, España",
     "no_medals": "Aún no tienes medallas",
     "no_medals_hint": "Escanea el QR de un monumento para ganar la primera"
+  },
+  "scan": {
+    "title": "Escanear QR",
+    "camera_error": "No se pudo acceder a la cámara. Comprueba los permisos.",
+    "activating": "Activando cámara…",
+    "tap_to_activate": "Toca para activar la cámara",
+    "point_at_qr": "Apunta al código QR del monumento",
+    "retry": "Reintentar"
+  },
+  "monument": {
+    "not_found": "Monumento no encontrado",
+    "read_less": "Leer menos",
+    "read_story": "Leer historia",
+    "history": "Historia",
+    "directions": "Cómo llegar",
+    "walking": "{{minutes}} min andando · {{distance}}",
+    "far_hint": "📍 Estás a {{distance}} — acércate al monumento para activar la AR",
+    "start_ar": "Iniciar experiencia AR",
+    "near_cta": "Estás cerca — ¡empieza ahora!",
+    "scan_qr_cta": "Escanea el código QR junto al monumento",
+    "century": "s. {{century}}",
+    "bc": "{{year}} a.C."
+  },
+  "collections": {
+    "title": "Logros",
+    "collections": "Colecciones",
+    "ranking": "Ranking",
+    "completed": "Completadas",
+    "in_progress": "En progreso",
+    "completed_badge": "¡Completada!",
+    "progress": "{{visited}} de {{total}} monumentos",
+    "earned_on": "Conseguida el {{date}}",
+    "loading_ranking": "Cargando ranking…",
+    "sign_in_ranking": "para aparecer en el ranking.",
+    "sign_in_progress": "para ver tu progreso en cada colección.",
+    "empty_ranking_title": "Sin exploradores aún",
+    "empty_ranking_hint": "Sé el primero en visitar monumentos y aparecer aquí.",
+    "your_position": "Tu posición",
+    "you": "tú",
+    "you_name": "Tú",
+    "explorer": "Explorador",
+    "stats": "{{visits}} visitas · {{medals}} medallas",
+    "loading": "Cargando colecciones…",
+    "load_error_title": "No se pudieron cargar las colecciones",
+    "load_error_hint": "Comprueba tu conexión e inténtalo de nuevo.",
+    "empty_title": "Sin colecciones aún",
+    "empty_hint": "Visita monumentos para desbloquear colecciones y ganar medallas.",
+    "explore_monuments": "Explorar monumentos"
+  },
+  "medal": {
+    "earned_on": "Conseguida el {{date}}",
+    "rarity": {
+      "bronze": "Individual · Villa",
+      "silver": "Individual · Capital",
+      "gold": "Colección · Capital",
+      "diamond": "Colección · Reino",
+      "fallback": "Individual"
+    },
+    "monuments_discovered": "monumentos\ndescubiertos",
+    "rotate_title": "Gira la medalla",
+    "rotate_hint": "con el dedo o el móvil",
+    "new_medal": "✨ Nueva medalla",
+    "next": "Ver siguiente →",
+    "done": "¡Increíble!",
+    "great": "¡Genial!"
+  },
+  "gyro": {
+    "prompt": "Activa el giroscopio para girar las medallas en 3D",
+    "dismiss": "Ahora no",
+    "activate": "Activar"
+  },
+  "common": {
+    "close": "Cerrar",
+    "change_avatar": "Cambiar avatar",
+    "retry": "Reintentar",
+    "connection_error": "Comprueba tu conexión e inténtalo de nuevo.",
+    "empty_users": "Sin usuarios aún",
+    "explorer": "Explorador"
+  },
+  "avatar": {
+    "owl": "Búho sabio",
+    "fox": "Zorro explorador",
+    "pigeon": "Paloma mensajera",
+    "cat": "Gato detective",
+    "dog": "Perro aventurero",
+    "quijote": "Don Quijote",
+    "sancho": "Sancho Panza",
+    "dulcinea": "Dulcinea"
   },
   "search": {
     "title": "Explorar",
@@ -79,6 +188,15 @@
   },
   "feed": {
     "title": "Feed",
+    "search_explorers": "Buscar exploradores",
+    "loading": "Cargando actividad…",
+    "load_error_title": "No se pudo cargar el feed",
+    "event_fallback": "hizo algo genial",
+    "unknown_monument": "un monumento",
+    "now": "ahora",
+    "minutes_ago": "hace {{count}}m",
+    "hours_ago": "hace {{count}}h",
+    "days_ago": "hace {{count}}d",
     "empty": "Aún no hay actividad. Sigue a alguien para ver su recorrido.",
     "empty_title": "Tu feed está vacío",
     "empty_hint": "Sigue a otros exploradores para ver sus descubrimientos",
@@ -88,5 +206,10 @@
       "medal_earned": "{{name}} consiguió la medalla {{medal}}",
       "collection_completed": "{{name}} completó la colección {{collection}}"
     }
+  },
+  "user_profile": {
+    "load_error_title": "No se pudo cargar el perfil",
+    "private_title": "Perfil privado",
+    "private_hint": "Este explorador mantiene su aventura en secreto."
   }
 }

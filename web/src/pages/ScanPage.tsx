@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import QrScanner from "qr-scanner";
 
 const AR_PATH_RE = /\/ar\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
 
 export function ScanPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const scannerRef = useRef<QrScanner | null>(null);
@@ -35,7 +37,7 @@ export function ScanPage() {
       await scanner.start();
       setScanning(true);
     } catch {
-      setError("No se pudo acceder a la cámara. Comprueba los permisos.");
+      setError(t("scan.camera_error"));
       setStarted(false);
     }
   };
@@ -62,7 +64,7 @@ export function ScanPage() {
             <path d="M11 4L6 9l5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-        <span className="text-canvas-white text-body font-medium">Escanear QR</span>
+        <span className="text-canvas-white text-body font-medium">{t("scan.title")}</span>
         <div className="w-10" />
       </div>
 
@@ -100,7 +102,7 @@ export function ScanPage() {
               </svg>
             </button>
             <p className="text-canvas-white/70 text-body text-center px-8">
-              {started ? "Activando cámara…" : "Toca para activar la cámara"}
+              {started ? t("scan.activating") : t("scan.tap_to_activate")}
             </p>
           </div>
         )}
@@ -113,11 +115,11 @@ export function ScanPage() {
             <p className="text-red-400 text-body">{error}</p>
             <button onClick={() => { setStarted(false); setError(null); startScanner(); }}
               className="text-canvas-white/70 text-body-sm underline">
-              Reintentar
+              {t("scan.retry")}
             </button>
           </div>
         ) : scanning ? (
-          <p className="text-canvas-white/70 text-body">Apunta al código QR del monumento</p>
+          <p className="text-canvas-white/70 text-body">{t("scan.point_at_qr")}</p>
         ) : null}
       </div>
     </main>

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { EarnedMedal } from "../lib/supabase";
 
-const TIER_DATA: Record<string, { emoji: string; color: string; label: string }> = {
-  bronze:   { emoji: "🥉", color: "from-amber-400 to-amber-600",   label: "Bronce"   },
-  silver:   { emoji: "🥈", color: "from-slate-300 to-slate-500",   label: "Plata"    },
-  gold:     { emoji: "🥇", color: "from-yellow-300 to-yellow-500", label: "Oro"      },
-  platinum: { emoji: "💎", color: "from-sky-300 to-sky-500",       label: "Platino"  },
+const TIER_DATA: Record<string, { emoji: string; color: string }> = {
+  bronze:   { emoji: "🥉", color: "from-amber-400 to-amber-600"   },
+  silver:   { emoji: "🥈", color: "from-slate-300 to-slate-500"   },
+  gold:     { emoji: "🥇", color: "from-yellow-300 to-yellow-500" },
+  platinum: { emoji: "💎", color: "from-sky-300 to-sky-500"      },
 };
 
 const PARTICLES = Array.from({ length: 18 }, (_, i) => i);
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function MedalCelebration({ medals, onClose }: Props) {
+  const { t } = useTranslation();
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(false);
 
@@ -72,7 +74,7 @@ export function MedalCelebration({ medals, onClose }: Props) {
           <div className="text-7xl mb-2 animate-bounce">{tier.emoji}</div>
 
           <p className="text-body-sm font-semibold text-ash-gray uppercase tracking-widest mb-1">
-            ¡Nueva medalla!
+            {t("medal.new_medal")}
           </p>
 
           <h2 className="text-subheading font-bold text-jet-black mb-2 leading-tight">
@@ -99,7 +101,7 @@ export function MedalCelebration({ medals, onClose }: Props) {
             onClick={advance}
             className="w-full rounded-2xl bg-pinterest-red text-canvas-white py-3 text-body font-semibold active:scale-95 transition-transform"
           >
-            {hasNext ? "Ver siguiente →" : "¡Increíble!"}
+            {hasNext ? t("medal.next") : t("medal.done")}
           </button>
         </div>
       </div>

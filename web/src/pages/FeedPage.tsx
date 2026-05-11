@@ -6,12 +6,12 @@ import { useAuth } from "../context/AuthContext";
 import { AvatarImage } from "../components/AvatarPicker";
 import { BottomNav } from "../components/BottomNav";
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, t: (key: string, options?: Record<string, unknown>) => string): string {
   const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (secs < 60) return "ahora";
-  if (secs < 3600) return `hace ${Math.floor(secs / 60)}m`;
-  if (secs < 86400) return `hace ${Math.floor(secs / 3600)}h`;
-  return `hace ${Math.floor(secs / 86400)}d`;
+  if (secs < 60) return t("feed.now");
+  if (secs < 3600) return t("feed.minutes_ago", { count: Math.floor(secs / 60) });
+  if (secs < 86400) return t("feed.hours_ago", { count: Math.floor(secs / 3600) });
+  return t("feed.days_ago", { count: Math.floor(secs / 86400) });
 }
 
 const EVENT_ICON: Record<string, string> = {
@@ -40,10 +40,10 @@ export function FeedPage() {
 
   function eventText(ev: FeedEvent): string {
     switch (ev.type) {
-      case "visit":                return t("feed.event.visit", { name: "", monument: ev.monument_name ?? "un monumento" }).replace(/^\s*·?\s*/, "");
+      case "visit":                return t("feed.event.visit", { name: "", monument: ev.monument_name ?? t("feed.unknown_monument") }).replace(/^\s*·?\s*/, "");
       case "medal_earned":         return t("feed.event.medal_earned", { name: "", medal: ev.medal_name ?? "?" }).replace(/^\s*·?\s*/, "");
       case "collection_completed": return t("feed.event.collection_completed", { name: "", collection: ev.medal_name ?? "?" }).replace(/^\s*·?\s*/, "");
-      default:                     return "hizo algo genial";
+      default:                     return t("feed.event_fallback");
     }
   }
 
@@ -54,7 +54,7 @@ export function FeedPage() {
         <button
           onClick={() => navigate("/search")}
           className="w-10 h-10 rounded-full bg-whisper-gray flex items-center justify-center text-xl"
-          aria-label="Buscar exploradores"
+          aria-label={t("feed.search_explorers")}
         >
           🔍
         </button>
@@ -63,20 +63,20 @@ export function FeedPage() {
       {fetching && (
         <div className="flex flex-col items-center pt-16 gap-3">
           <div className="w-8 h-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
-          <p className="text-body-sm text-ash-gray">Cargando actividad…</p>
+          <p className="text-body-sm text-ash-gray">{t("feed.loading")}</p>
         </div>
       )}
 
       {!fetching && fetchError && (
         <div className="px-6 pt-8 text-center">
           <p className="text-4xl mb-3">📡</p>
-          <p className="text-body font-semibold text-graphite">No se pudo cargar el feed</p>
-          <p className="text-body-sm text-ash-gray mt-1">Comprueba tu conexión e inténtalo de nuevo.</p>
+          <p className="text-body font-semibold text-graphite">{t("feed.load_error_title")}</p>
+          <p className="text-body-sm text-ash-gray mt-1">{t("common.connection_error")}</p>
           <button
             onClick={() => { setFetching(true); setFetchError(false); feedForMeRich(50).then(setEvents).catch(() => setFetchError(true)).finally(() => setFetching(false)); }}
             className="mt-4 rounded-full border border-whisper-gray text-graphite px-6 py-2.5 text-body font-medium"
           >
-            Reintentar
+            {t("common.retry")}
           </button>
         </div>
       )}
@@ -108,7 +108,7 @@ export function FeedPage() {
                 </button>{" "}
                 <span className="text-ash-gray">{eventText(ev)}</span>
               </p>
-              <p className="text-body-sm text-ash-gray mt-0.5">{timeAgo(ev.created_at)}</p>
+              <p className="text-body-sm text-ash-gray mt-0.5">{timeAgo(ev.created_at, t)}</p>
             </div>
             <span className="text-xl shrink-0">{EVENT_ICON[ev.type] ?? "⭐"}</span>
           </li>

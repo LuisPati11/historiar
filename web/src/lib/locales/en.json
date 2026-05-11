@@ -4,6 +4,14 @@
     "tagline": "Monuments near you"
   },
   "home": {
+    "title": "Explore",
+    "list": "List",
+    "map": "Map",
+    "sign_in": "Sign in",
+    "retry": "Retry",
+    "location_denied_hint": "Go to Settings > Privacy > Location and allow access for your browser.",
+    "location_timeout_hint": "Step outside and try again.",
+    "no_geolocation_hint": "Try opening it on a mobile device.",
     "searching": "Searching monuments near you…",
     "activate_ar": "Start AR",
     "scan_qr_hint": "Scan the QR code next to the monument",
@@ -28,6 +36,14 @@
     "experience_ended": "Experience complete!"
   },
   "auth": {
+    "login_hero": "Explore the history\naround you",
+    "register_hero": "Create your explorer account",
+    "explorer_name": "Explorer name",
+    "explore_guest_title": "Explore without an account",
+    "explore_guest_hint": "Discover monuments and experience AR",
+    "no_account": "No account yet? ",
+    "has_account": "Already have an account? ",
+    "or": "or",
     "sign_in": "Sign in",
     "sign_out": "Sign out",
     "login": "Sign in",
@@ -51,7 +67,11 @@
   },
   "nav": {
     "back": "Back",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "home": "Home",
+    "feed": "Feed",
+    "achievements": "Achievements",
+    "profile": "Profile"
   },
   "profile": {
     "my_profile": "My profile",
@@ -66,8 +86,97 @@
     "language": "Language",
     "language_save_error": "Couldn't save the language. Please try again.",
     "saving": "Saving…",
+    "medal_location_toledo": "Ciudad Real, Spain",
     "no_medals": "No medals yet",
     "no_medals_hint": "Scan a monument QR to earn your first one"
+  },
+  "scan": {
+    "title": "Scan QR",
+    "camera_error": "Couldn't access the camera. Check your permissions.",
+    "activating": "Activating camera…",
+    "tap_to_activate": "Tap to activate the camera",
+    "point_at_qr": "Point at the monument QR code",
+    "retry": "Retry"
+  },
+  "monument": {
+    "not_found": "Monument not found",
+    "read_less": "Read less",
+    "read_story": "Read story",
+    "history": "History",
+    "directions": "Directions",
+    "walking": "{{minutes}} min walking · {{distance}}",
+    "far_hint": "📍 You're {{distance}} away — get closer to the monument to start AR",
+    "start_ar": "Start AR experience",
+    "near_cta": "You're nearby — start now!",
+    "scan_qr_cta": "Scan the QR code next to the monument",
+    "century": "{{century}}th c.",
+    "bc": "{{year}} BC"
+  },
+  "collections": {
+    "title": "Achievements",
+    "collections": "Collections",
+    "ranking": "Ranking",
+    "completed": "Completed",
+    "in_progress": "In progress",
+    "completed_badge": "Completed!",
+    "progress": "{{visited}} of {{total}} monuments",
+    "earned_on": "Earned on {{date}}",
+    "loading_ranking": "Loading ranking…",
+    "sign_in_ranking": "to appear in the ranking.",
+    "sign_in_progress": "to see your progress in each collection.",
+    "empty_ranking_title": "No explorers yet",
+    "empty_ranking_hint": "Be the first to visit monuments and appear here.",
+    "your_position": "Your position",
+    "you": "you",
+    "you_name": "You",
+    "explorer": "Explorer",
+    "stats": "{{visits}} visits · {{medals}} medals",
+    "loading": "Loading collections…",
+    "load_error_title": "Couldn't load collections",
+    "load_error_hint": "Check your connection and try again.",
+    "empty_title": "No collections yet",
+    "empty_hint": "Visit monuments to unlock collections and earn medals.",
+    "explore_monuments": "Explore monuments"
+  },
+  "medal": {
+    "earned_on": "Earned on {{date}}",
+    "rarity": {
+      "bronze": "Individual · Town",
+      "silver": "Individual · Capital",
+      "gold": "Collection · Capital",
+      "diamond": "Collection · Kingdom",
+      "fallback": "Individual"
+    },
+    "monuments_discovered": "monuments\ndiscovered",
+    "rotate_title": "Rotate the medal",
+    "rotate_hint": "with your finger or phone",
+    "new_medal": "✨ New medal",
+    "next": "See next →",
+    "done": "Amazing!",
+    "great": "Great!"
+  },
+  "gyro": {
+    "prompt": "Enable the gyroscope to rotate medals in 3D",
+    "dismiss": "Not now",
+    "activate": "Enable"
+  },
+  "common": {
+    "close": "Close",
+    "change_avatar": "Change avatar",
+    "retry": "Retry",
+    "connection_error": "Check your connection and try again.",
+    "empty_users": "No users yet",
+    "explorer": "Explorer"
+  },
+  "avatar": {
+    "owl": "Wise explorer",
+    "fox": "Trail explorer",
+    "pigeon": "Message explorer",
+    "cat": "Detective explorer",
+    "dog": "Adventure explorer",
+    "quijote": "Don Quixote",
+    "sancho": "Sancho Panza",
+    "dulcinea": "Dulcinea"
   },
   "search": {
     "title": "Explore",
@@ -79,6 +188,15 @@
   },
   "feed": {
     "title": "Feed",
+    "search_explorers": "Search explorers",
+    "loading": "Loading activity…",
+    "load_error_title": "Couldn't load the feed",
+    "event_fallback": "did something great",
+    "unknown_monument": "a monument",
+    "now": "now",
+    "minutes_ago": "{{count}}m ago",
+    "hours_ago": "{{count}}h ago",
+    "days_ago": "{{count}}d ago",
     "empty": "No activity yet. Follow someone to see their journey.",
     "empty_title": "Your feed is empty",
     "empty_hint": "Follow other explorers to see their discoveries",
@@ -88,5 +206,10 @@
       "medal_earned": "{{name}} earned the {{medal}} medal",
       "collection_completed": "{{name}} completed the {{collection}} collection"
     }
+  },
+  "user_profile": {
+    "load_error_title": "Couldn't load the profile",
+    "private_title": "Private profile",
+    "private_hint": "This explorer keeps their adventure private."
   }
 }

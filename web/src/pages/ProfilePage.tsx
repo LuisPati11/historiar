@@ -148,7 +148,7 @@ export function ProfilePage() {
             <button
               onClick={() => setEditingAvatar(true)}
               className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-pinterest-red text-canvas-white flex items-center justify-center shadow-md"
-              aria-label="Cambiar avatar"
+              aria-label={t("common.change_avatar")}
             >
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
                 <path d="M9.5 1.5l2 2L4 11H2V9L9.5 1.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" fill="none"/>
@@ -290,7 +290,7 @@ export function ProfilePage() {
           tier={selectedMedal.medal.tier}
           earnedAt={selectedMedal.earned_at}
           backgroundUrl={HERO_URL}
-          location="Ciudad Real, España"
+          location={t("profile.medal_location_toledo")}
           collectionName={selectedMedalCollection?.collection_name}
           collectionProgress={selectedMedalCollection?.visited_monuments}
           collectionTotal={selectedMedalCollection?.total_monuments}
