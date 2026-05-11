@@ -63,6 +63,7 @@
     "make_public": "Public profile",
     "make_private": "Private profile",
     "language": "Language",
+    "language_save_error": "Couldn't save the language. Please try again.",
     "saving": "Saving…",
     "no_medals": "No medals yet",
     "no_medals_hint": "Scan a monument QR to earn your first one"

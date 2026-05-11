@@ -63,6 +63,7 @@
     "make_public": "Perfil público",
     "make_private": "Perfil privado",
     "language": "Idioma",
+    "language_save_error": "No se pudo guardar el idioma. Inténtalo de nuevo.",
     "saving": "Guardando…",
     "no_medals": "Aún no tienes medallas",
     "no_medals_hint": "Escanea el QR de un monumento para ganar la primera"

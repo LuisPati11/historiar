@@ -28,6 +28,7 @@ export function ProfilePage() {
   const [editingAvatar, setEditingAvatar] = useState(false);
   const [savingAvatar, setSavingAvatar] = useState(false);
   const [savingLocale, setSavingLocale] = useState(false);
+  const [localeError, setLocaleError] = useState<string | null>(null);
   const [locale, setLocale] = useState<Locale>(() => currentLocale());
   const [showFollowList, setShowFollowList] = useState<"followers" | "following" | null>(null);
   const [selectedMedal, setSelectedMedal] = useState<UserMedal | null>(null);
@@ -60,13 +61,28 @@ export function ProfilePage() {
   };
 
   const handleLocaleChange = async (nextLocale: Locale) => {
+    const previousLocale = locale;
     setLocale(nextLocale);
     setSavingLocale(true);
+    setLocaleError(null);
     await i18n.changeLanguage(nextLocale);
+
+    const timeout = new Promise<never>((_, reject) => {
+      window.setTimeout(() => reject(new Error(t("profile.language_save_error"))), 8000);
+    });
+
     try {
-      await supabase.auth.updateUser({ data: { locale: nextLocale } });
-      await updatePreferredLocale(nextLocale);
-      await supabase.auth.refreshSession();
+      await Promise.race([
+        Promise.all([
+          supabase.auth.updateUser({ data: { locale: nextLocale } }),
+          updatePreferredLocale(nextLocale),
+        ]),
+        timeout,
+      ]);
+    } catch {
+      setLocale(previousLocale);
+      setLocaleError(t("profile.language_save_error"));
+      await i18n.changeLanguage(previousLocale);
     } finally {
       setSavingLocale(false);
     }
@@ -155,6 +171,9 @@ export function ProfilePage() {
           />
           {savingLocale && (
             <p className="text-body-sm text-ash-gray mt-2">{t("profile.saving")}</p>
+          )}
+          {localeError && (
+            <p className="text-body-sm text-red-600 mt-2">{localeError}</p>
           )}
         </div>
 
