@@ -3,13 +3,15 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase, syncProfile } from "../lib/supabase";
 import { AvatarPicker, type AvatarId } from "../components/AvatarPicker";
+import { LanguageSelect } from "../components/LanguageSelect";
+import { currentLocale, type Locale } from "../lib/i18n";
 
 type Mode = "login" | "register";
 
 const HERO_URL = "https://qvevpackpwpjqgsapqws.supabase.co/storage/v1/object/public/monument-images/puerta-toledo-login.jpg";
 
 export function AuthPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string })?.from ?? "/";
@@ -24,6 +26,12 @@ export function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [resent, setResent] = useState(false);
+  const [locale, setLocale] = useState<Locale>(() => currentLocale());
+
+  const handleLocaleChange = async (nextLocale: Locale) => {
+    setLocale(nextLocale);
+    await i18n.changeLanguage(nextLocale);
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,10 +43,13 @@ export function AuthPage() {
         const finalUsername = username || email.split("@")[0];
         const { error, data } = await supabase.auth.signUp({
           email, password,
-          options: { data: { username: finalUsername, avatar }, emailRedirectTo: "https://travel-guide-medals.netlify.app" },
+          options: {
+            data: { username: finalUsername, full_name: finalUsername, avatar, locale },
+            emailRedirectTo: "https://travel-guide-medals.netlify.app",
+          },
         });
         if (error) throw error;
-        if (data.user) await syncProfile(finalUsername, avatar);
+        if (data.user) await syncProfile(finalUsername, avatar, locale);
         setPendingEmail(email);
         return;
       } else {
@@ -170,10 +181,18 @@ export function AuthPage() {
           </div>
 
           {mode === "register" && (
-            <div>
-              <label className="block text-body-sm font-semibold text-graphite mb-3">{t("auth.choose_avatar")}</label>
-              <AvatarPicker selected={avatar} onSelect={setAvatar} />
-            </div>
+            <>
+              <LanguageSelect
+                value={locale}
+                onChange={(nextLocale) => { void handleLocaleChange(nextLocale); }}
+                label={t("profile.language")}
+              />
+
+              <div>
+                <label className="block text-body-sm font-semibold text-graphite mb-3">{t("auth.choose_avatar")}</label>
+                <AvatarPicker selected={avatar} onSelect={setAvatar} />
+              </div>
+            </>
           )}
 
           {error && <p className="text-body-sm text-red-600 bg-red-50 rounded-xl px-4 py-2">{error}</p>}

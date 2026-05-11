@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { Locale } from "./i18n";
 
 const url = import.meta.env.VITE_SUPABASE_URL as string;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -184,13 +185,34 @@ export async function searchProfiles(query: string): Promise<ProfileResult[]> {
   return (data ?? []) as ProfileResult[];
 }
 
-export async function syncProfile(username: string, avatarId: string | null) {
+export async function syncProfile(username: string, avatarId: string | null, locale?: Locale) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
-  await supabase.from("profiles").update({
+  const updates: { display_name: string; avatar_url?: string; locale?: Locale } = {
     display_name: username,
     avatar_url: avatarId ?? undefined,
-  }).eq("id", user.id);
+  };
+  if (locale) updates.locale = locale;
+  await supabase.from("profiles").update(updates).eq("id", user.id);
+}
+
+export async function getMyProfileSettings(): Promise<{ locale: Locale } | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("locale")
+    .eq("id", user.id)
+    .single();
+  if (error || !data) return null;
+  return data as { locale: Locale };
+}
+
+export async function updatePreferredLocale(locale: Locale) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  const { error } = await supabase.from("profiles").update({ locale }).eq("id", user.id);
+  if (error) throw error;
 }
 
 export interface FollowUser {

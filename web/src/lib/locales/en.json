@@ -62,6 +62,7 @@
     "bio": "Bio",
     "make_public": "Public profile",
     "make_private": "Private profile",
+    "language": "Language",
     "saving": "Saving…",
     "no_medals": "No medals yet",
     "no_medals_hint": "Scan a monument QR to earn your first one"

@@ -22,10 +22,22 @@ void i18n
     },
   });
 
+i18n.on("languageChanged", (lng) => {
+  document.documentElement.lang = lng.split("-")[0] || "es";
+});
+
+i18n.on("initialized", () => {
+  document.documentElement.lang = i18n.resolvedLanguage?.split("-")[0] || "es";
+});
+
 export default i18n;
 
 export type Locale = "es" | "en";
 
+export function normalizeLocale(locale: string | null | undefined): Locale {
+  return locale?.startsWith("en") ? "en" : "es";
+}
+
 export function currentLocale(): Locale {
-  return (i18n.resolvedLanguage as Locale) ?? "es";
+  return normalizeLocale(i18n.resolvedLanguage ?? i18n.language);
 }

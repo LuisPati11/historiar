@@ -2,18 +2,20 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
-import { getUserMedals, getUserVisitCount, getFollowers, getFollowing, getCollectionsProgress, type UserMedal, type FollowUser, type CollectionProgress } from "../lib/supabase";
+import { getUserMedals, getUserVisitCount, getFollowers, getFollowing, getCollectionsProgress, getMyProfileSettings, updatePreferredLocale, type UserMedal, type FollowUser, type CollectionProgress } from "../lib/supabase";
 import { supabase, syncProfile } from "../lib/supabase";
 import { AvatarImage, AvatarPicker, type AvatarId } from "../components/AvatarPicker";
 import { FollowListModal } from "../components/FollowListModal";
 import { BottomNav } from "../components/BottomNav";
 import { TIER_CONFIG } from "../lib/tierConfig";
 import { MedalModal } from "../components/MedalCard";
+import { LanguageSelect } from "../components/LanguageSelect";
+import { currentLocale, normalizeLocale, type Locale } from "../lib/i18n";
 
 const HERO_URL = "https://qvevpackpwpjqgsapqws.supabase.co/storage/v1/object/public/monument-images/puerta-toledo-login.jpg";
 
 export function ProfilePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, signOut, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -25,6 +27,8 @@ export function ProfilePage() {
   const [dataLoading, setDataLoading] = useState(true);
   const [editingAvatar, setEditingAvatar] = useState(false);
   const [savingAvatar, setSavingAvatar] = useState(false);
+  const [savingLocale, setSavingLocale] = useState(false);
+  const [locale, setLocale] = useState<Locale>(() => currentLocale());
   const [showFollowList, setShowFollowList] = useState<"followers" | "following" | null>(null);
   const [selectedMedal, setSelectedMedal] = useState<UserMedal | null>(null);
 
@@ -32,18 +36,40 @@ export function ProfilePage() {
     if (loading) return;
     if (!user) { navigate("/auth", { state: { from: "/profile" } }); return; }
 
-    Promise.all([getUserMedals(), getUserVisitCount(), getFollowers(user.id), getFollowing(user.id), getCollectionsProgress()])
-      .then(([m, v, frs, fng, cp]) => { setMedals(m); setVisitCount(v); setFollowers(frs); setFollowing(fng); setCollectionsProgress(cp); })
+    Promise.all([getUserMedals(), getUserVisitCount(), getFollowers(user.id), getFollowing(user.id), getCollectionsProgress(), getMyProfileSettings()])
+      .then(([m, v, frs, fng, cp, settings]) => {
+        const preferredLocale = normalizeLocale((user.user_metadata as { locale?: string } | undefined)?.locale ?? settings?.locale);
+        setMedals(m);
+        setVisitCount(v);
+        setFollowers(frs);
+        setFollowing(fng);
+        setCollectionsProgress(cp);
+        setLocale(preferredLocale);
+        void i18n.changeLanguage(preferredLocale);
+      })
       .finally(() => setDataLoading(false));
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, i18n]);
 
   const handleAvatarChange = async (newAvatar: AvatarId) => {
     setSavingAvatar(true);
     await supabase.auth.updateUser({ data: { avatar: newAvatar } });
-    await syncProfile(username, newAvatar);
+    await syncProfile(username, newAvatar, locale);
     await supabase.auth.refreshSession();
     setSavingAvatar(false);
     setEditingAvatar(false);
+  };
+
+  const handleLocaleChange = async (nextLocale: Locale) => {
+    setLocale(nextLocale);
+    setSavingLocale(true);
+    await i18n.changeLanguage(nextLocale);
+    try {
+      await supabase.auth.updateUser({ data: { locale: nextLocale } });
+      await updatePreferredLocale(nextLocale);
+      await supabase.auth.refreshSession();
+    } finally {
+      setSavingLocale(false);
+    }
   };
 
   const meta = user?.user_metadata as { username?: string; avatar?: string } | undefined;
@@ -118,6 +144,18 @@ export function ProfilePage() {
             <h1 className="text-[1.25rem] font-bold text-jet-black leading-tight truncate">{username}</h1>
             <p className="text-body-sm text-ash-gray truncate">{user?.email}</p>
           </div>
+        </div>
+
+        <div className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 mb-6">
+          <LanguageSelect
+            value={locale}
+            onChange={(nextLocale) => { void handleLocaleChange(nextLocale); }}
+            disabled={savingLocale}
+            label={t("profile.language")}
+          />
+          {savingLocale && (
+            <p className="text-body-sm text-ash-gray mt-2">{t("profile.saving")}</p>
+          )}
         </div>
 
         {/* Stats 2×2 */}
