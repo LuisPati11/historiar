@@ -160,6 +160,12 @@
     "dismiss": "Ahora no",
     "activate": "Activar"
   },
+  "map": {
+    "loading": "Cargando mapa…",
+    "load_error_title": "El mapa está tardando demasiado",
+    "load_error_hint": "Comprueba la conexión e inténtalo de nuevo.",
+    "view_detail": "Ver detalle →"
+  },
   "common": {
     "close": "Cerrar",
     "change_avatar": "Cambiar avatar",

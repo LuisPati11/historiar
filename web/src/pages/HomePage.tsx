@@ -8,7 +8,8 @@ import { BottomNav } from "../components/BottomNav";
 
 type ViewMode = "list" | "map";
 
-const MonumentsMap = lazy(() => import("../components/MonumentsMap").then((m) => ({ default: m.MonumentsMap })));
+const loadMonumentsMap = () => import("../components/MonumentsMap");
+const MonumentsMap = lazy(() => loadMonumentsMap().then((m) => ({ default: m.MonumentsMap })));
 
 function MonumentImage({ src, alt }: { src: string; alt: string }) {
   const [status, setStatus] = useState<"loading" | "loaded" | "error">("loading");
@@ -86,6 +87,20 @@ export function HomePage() {
 
   useEffect(() => {
     getAllMonuments().then(setAllMonuments).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const preload = () => { void loadMonumentsMap(); };
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (idleWindow.requestIdleCallback) {
+      const idleId = idleWindow.requestIdleCallback(preload, { timeout: 2500 });
+      return () => idleWindow.cancelIdleCallback?.(idleId);
+    }
+    const timer = globalThis.setTimeout(preload, 1200);
+    return () => globalThis.clearTimeout(timer);
   }, []);
 
   useEffect(() => {

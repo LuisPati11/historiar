@@ -41,6 +41,15 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
           {
+            urlPattern: /^https:\/\/api\.maptiler\.com\/.*/i,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "maptiler-cache",
+              expiration: { maxEntries: 220, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             urlPattern: /\.(mp4|m4a|mp3|webm)$/,
             handler: "CacheFirst",
             options: {

@@ -160,6 +160,12 @@
     "dismiss": "Not now",
     "activate": "Enable"
   },
+  "map": {
+    "loading": "Loading map…",
+    "load_error_title": "The map is taking too long",
+    "load_error_hint": "Check your connection and try again.",
+    "view_detail": "View details →"
+  },
   "common": {
     "close": "Close",
     "change_avatar": "Change avatar",
