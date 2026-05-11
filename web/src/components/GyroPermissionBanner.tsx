@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 
 const STORAGE_KEY = "gyro_permission";
+const GYRO_PERMISSION_EVENT = "gyro-permission-change";
 
 export function GyroPermissionBanner() {
   const [show, setShow] = useState(false);
@@ -20,11 +21,13 @@ export function GyroPermissionBanner() {
     } catch {
       localStorage.setItem(STORAGE_KEY, "denied");
     }
+    window.dispatchEvent(new Event(GYRO_PERMISSION_EVENT));
     setShow(false);
   };
 
   const handleDismiss = () => {
     localStorage.setItem(STORAGE_KEY, "denied");
+    window.dispatchEvent(new Event(GYRO_PERMISSION_EVENT));
     setShow(false);
   };
 

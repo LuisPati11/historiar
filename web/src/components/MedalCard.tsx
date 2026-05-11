@@ -24,10 +24,13 @@ const TIER_RARITY: Record<string, string> = {
   diamond: "Colección · Reino",
 };
 
+const GYRO_PERMISSION_KEY = "gyro_permission";
+const GYRO_PERMISSION_EVENT = "gyro-permission-change";
 
 export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 260, hideInfo = false }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const rafRef  = useRef<number>(0);
+  const gyroCleanupRef = useRef<(() => void) | null>(null);
   const target  = useRef({ rx: 0, ry: 0 });
   const current = useRef({ rx: 0, ry: 0 });
   const isDragging = useRef(false);
@@ -35,6 +38,9 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
   const [rx, setRx] = useState(0);
   const [ry, setRy] = useState(0);
   const [gyroEnabled, setGyroEnabled] = useState(false);
+  const [gyroPermission, setGyroPermission] = useState(() =>
+    typeof window === "undefined" ? null : localStorage.getItem(GYRO_PERMISSION_KEY),
+  );
 
   const tick = useCallback(() => {
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -51,6 +57,7 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
   }, [tick]);
 
   const attachGyro = useCallback(() => {
+    if (gyroCleanupRef.current) return;
     const handler = (e: DeviceOrientationEvent) => {
       if (isDragging.current) return;
       const gamma = Math.max(-45, Math.min(45, e.gamma ?? 0));
@@ -59,24 +66,50 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
       target.current.rx = beta  * 0.45;
     };
     window.addEventListener("deviceorientation", handler);
+    gyroCleanupRef.current = () => {
+      window.removeEventListener("deviceorientation", handler);
+      gyroCleanupRef.current = null;
+      setGyroEnabled(false);
+    };
     setGyroEnabled(true);
-    return () => window.removeEventListener("deviceorientation", handler);
   }, []);
 
   useEffect(() => {
     if (typeof DeviceOrientationEvent === "undefined") return;
     const isIOS = typeof (DeviceOrientationEvent as any).requestPermission === "function";
     if (isIOS) {
-      // Solo adjunta el handler si el permiso ya fue concedido desde GyroPermissionBanner
-      if (localStorage.getItem("gyro_permission") === "granted") {
-        const cleanup = attachGyro();
-        return cleanup;
-      }
+      if (gyroPermission === "granted") attachGyro();
     } else {
-      const cleanup = attachGyro();
-      return cleanup;
+      attachGyro();
     }
-  }, [attachGyro]);
+  }, [attachGyro, gyroPermission]);
+
+  useEffect(() => {
+    const syncGyroPermission = () => {
+      setGyroPermission(localStorage.getItem(GYRO_PERMISSION_KEY));
+    };
+    window.addEventListener(GYRO_PERMISSION_EVENT, syncGyroPermission);
+    window.addEventListener("storage", syncGyroPermission);
+    return () => {
+      window.removeEventListener(GYRO_PERMISSION_EVENT, syncGyroPermission);
+      window.removeEventListener("storage", syncGyroPermission);
+      gyroCleanupRef.current?.();
+    };
+  }, []);
+
+  const requestGyroFromGesture = async () => {
+    if (typeof DeviceOrientationEvent === "undefined") return;
+    if (typeof (DeviceOrientationEvent as any).requestPermission !== "function") return;
+    if (localStorage.getItem(GYRO_PERMISSION_KEY) === "granted") return;
+
+    try {
+      const res = await (DeviceOrientationEvent as any).requestPermission();
+      localStorage.setItem(GYRO_PERMISSION_KEY, res === "granted" ? "granted" : "denied");
+    } catch {
+      localStorage.setItem(GYRO_PERMISSION_KEY, "denied");
+    }
+    window.dispatchEvent(new Event(GYRO_PERMISSION_EVENT));
+  };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!cardRef.current) return;
@@ -121,7 +154,10 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
             ref={cardRef}
             onPointerMove={handlePointerMove}
             onPointerLeave={handlePointerLeave}
-            onPointerDown={(e) => e.currentTarget.setPointerCapture(e.pointerId)}
+            onPointerDown={(e) => {
+              e.currentTarget.setPointerCapture(e.pointerId);
+              void requestGyroFromGesture();
+            }}
             style={{
               width:  "100%",
               height: "100%",
