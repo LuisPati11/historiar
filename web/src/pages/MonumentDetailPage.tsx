@@ -71,8 +71,8 @@ export function MonumentDetailPage() {
     : null;
 
   const shortDesc = monument.description
-    ? monument.description.length > 100
-      ? monument.description.slice(0, 100) + "…"
+    ? monument.description.length > 220
+      ? monument.description.slice(0, 220) + "…"
       : monument.description
     : null;
 
@@ -241,8 +241,13 @@ export function MonumentDetailPage() {
 
       {/* Botón AR fijo */}
       <div className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-canvas-white/95 backdrop-blur">
+        {distanceM !== null && distanceM > 500 && (
+          <p className="text-center text-body-sm text-ash-gray mb-2">
+            📍 Estás a {formatDist(distanceM)} — acércate al monumento para activar la AR
+          </p>
+        )}
         <button
-          onClick={() => navigate("/scan")}
+          onClick={() => navigate(distanceM !== null && distanceM <= 500 ? `/ar/${monument.id}` : "/scan")}
           className="w-full rounded-2xl bg-[#8B1A1A] text-canvas-white px-6 py-4 flex items-center justify-center gap-3 active:scale-[0.98] transition-transform shadow-lg"
         >
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
@@ -259,7 +264,11 @@ export function MonumentDetailPage() {
           </svg>
           <div className="text-left">
             <p className="text-body font-bold leading-tight">Iniciar experiencia AR</p>
-            <p className="text-body-sm opacity-75">Escanea el código QR junto al monumento</p>
+            <p className="text-body-sm opacity-75">
+              {distanceM !== null && distanceM <= 500
+                ? "Estás cerca — ¡empieza ahora!"
+                : "Escanea el código QR junto al monumento"}
+            </p>
           </div>
         </button>
       </div>

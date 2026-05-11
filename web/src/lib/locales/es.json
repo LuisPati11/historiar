@@ -4,10 +4,16 @@
     "tagline": "Monumentos cerca de ti"
   },
   "home": {
-    "searching": "Buscando…",
+    "searching": "Buscando monumentos cerca de ti…",
     "activate_ar": "Activar AR",
     "scan_qr_hint": "Escanea el código QR junto al monumento",
-    "no_geolocation": "Geolocalización no disponible en este dispositivo."
+    "no_geolocation": "Geolocalización no disponible en este dispositivo.",
+    "location_denied": "Activa la ubicación para ver los monumentos más cercanos.",
+    "location_timeout": "El GPS tardó demasiado. Comprueba tu conexión e inténtalo de nuevo.",
+    "none_nearby": "No hay monumentos en un radio de 5 km.",
+    "none_nearby_hint": "Acércate al centro de Ciudad Real o explora el mapa.",
+    "see_map": "Ver en el mapa",
+    "location_denied_action": "Cómo activar la ubicación"
   },
   "ar": {
     "loading": "Cargando monumento…",

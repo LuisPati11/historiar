@@ -98,7 +98,7 @@ export async function feedForMe(limit = 50) {
 export interface UserMedal {
   medal_id: string;
   earned_at: string;
-  medal: { name: string; tier: string; points_reward: number; description: string | null };
+  medal: { name: string; tier: string; points_reward: number; description: string | null; image_url: string | null };
 }
 
 export interface EarnedMedal {
@@ -129,7 +129,7 @@ export async function getUserMedals(): Promise<UserMedal[]> {
   if (!user) return [];
   const { data, error } = await supabase
     .from("user_medals")
-    .select("medal_id, earned_at, medals(name, tier, points_reward, description)")
+    .select("medal_id, earned_at, medals(name, tier, points_reward, description, image_url)")
     .eq("user_id", user.id)
     .order("earned_at", { ascending: false });
   if (error) throw error;
@@ -230,7 +230,7 @@ export async function getPublicProfile(userId: string) {
 export async function getPublicUserMedals(userId: string): Promise<UserMedal[]> {
   const { data, error } = await supabase
     .from("user_medals")
-    .select("medal_id, earned_at, medal:medals(name, description, tier, points_reward)")
+    .select("medal_id, earned_at, medal:medals(name, description, tier, points_reward, image_url)")
     .eq("user_id", userId);
   if (error) throw error;
   return (data ?? []) as unknown as UserMedal[];

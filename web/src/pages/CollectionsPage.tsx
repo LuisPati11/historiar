@@ -101,7 +101,12 @@ function RankingTab() {
       .finally(() => setLoading(false));
   }, [user]);
 
-  if (loading) return <p className="text-body text-ash-gray px-6 py-8">Cargando ranking…</p>;
+  if (loading) return (
+    <div className="flex flex-col items-center pt-16 gap-3">
+      <div className="w-8 h-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
+      <p className="text-body-sm text-ash-gray">Cargando ranking…</p>
+    </div>
+  );
 
   const meInTop = user && entries.some(e => e.user_id === user.id);
 
@@ -200,8 +205,25 @@ export function CollectionsPage() {
               {" "}para ver tu progreso en cada colección.
             </div>
           )}
-          {loading && <p className="text-body text-ash-gray px-6">Cargando colecciones…</p>}
-          {error && <p className="mx-6 rounded-2xl bg-whisper-gray px-4 py-3 text-body text-graphite">⚠️ {error}</p>}
+          {loading && (
+            <div className="flex flex-col items-center pt-16 gap-3">
+              <div className="w-8 h-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
+              <p className="text-body-sm text-ash-gray">Cargando colecciones…</p>
+            </div>
+          )}
+          {error && (
+            <div className="mx-6 flex flex-col items-center py-12 text-center gap-3">
+              <p className="text-4xl">📡</p>
+              <p className="text-body font-semibold text-graphite">No se pudieron cargar las colecciones</p>
+              <p className="text-body-sm text-ash-gray">Comprueba tu conexión e inténtalo de nuevo.</p>
+              <button
+                onClick={() => { setLoading(true); setError(null); getCollectionsProgress().then(setCollections).catch(e => setError((e as Error).message)).finally(() => setLoading(false)); }}
+                className="mt-1 rounded-full border border-whisper-gray text-graphite px-6 py-2.5 text-body font-medium"
+              >
+                Reintentar
+              </button>
+            </div>
+          )}
           {!loading && !error && (
             <div className="px-6 space-y-4">
               {completed.length > 0 && (
@@ -218,9 +240,13 @@ export function CollectionsPage() {
                 </>
               )}
               {collections.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
+                <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
                   <span className="text-5xl">🏆</span>
                   <p className="text-subheading font-semibold text-graphite">Sin colecciones aún</p>
+                  <p className="text-body-sm text-ash-gray max-w-xs">Visita monumentos para desbloquear colecciones y ganar medallas.</p>
+                  <button onClick={() => navigate("/")} className="rounded-full bg-pinterest-red text-canvas-white px-6 py-2.5 text-body font-medium">
+                    Explorar monumentos
+                  </button>
                 </div>
               )}
             </div>

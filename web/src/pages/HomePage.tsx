@@ -10,23 +10,59 @@ import { MonumentsMap } from "../components/MonumentsMap";
 type ViewMode = "list" | "map";
 
 function MonumentImage({ src, alt }: { src: string; alt: string }) {
-  const [loaded, setLoaded] = useState(false);
+  const [status, setStatus] = useState<"loading" | "loaded" | "error">("loading");
   return (
     <div className="relative w-full h-full" style={{ minHeight: "130px" }}>
-      {!loaded && (
+      {status === "loading" && (
         <div className="absolute inset-0 bg-[#E8E3DC] overflow-hidden">
           <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.4s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+        </div>
+      )}
+      {status === "error" && (
+        <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-[#f0ece6]">
+          <svg width="44" height="44" viewBox="0 0 36 36" fill="none" opacity="0.35">
+            <line x1="4" y1="30" x2="32" y2="30" stroke="#7C6A55" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="10" y1="30" x2="10" y2="18" stroke="#7C6A55" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="18" y1="30" x2="18" y2="18" stroke="#7C6A55" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="26" y1="30" x2="26" y2="18" stroke="#7C6A55" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="6" y1="18" x2="30" y2="18" stroke="#7C6A55" strokeWidth="2" strokeLinecap="round"/>
+            <polyline points="4,16 18,7 32,16" stroke="#7C6A55" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
       )}
       <img
         src={src}
         alt={alt}
-        onLoad={() => setLoaded(true)}
+        onLoad={() => setStatus("loaded")}
+        onError={() => setStatus("error")}
         loading="lazy"
         decoding="async"
-        className={`w-full h-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+        className={`w-full h-full object-cover transition-opacity duration-300 ${status === "loaded" ? "opacity-100" : "opacity-0"}`}
         style={{ minHeight: "130px" }}
       />
+    </div>
+  );
+}
+
+function EmptyState({ icon, title, hint, action }: {
+  icon: string;
+  title: string;
+  hint?: string;
+  action?: { label: string; onClick: () => void };
+}) {
+  return (
+    <div className="flex flex-col items-center pt-16 pb-8 px-6 text-center gap-3">
+      <span className="text-5xl mb-1">{icon}</span>
+      <p className="text-body font-semibold text-graphite">{title}</p>
+      {hint && <p className="text-body-sm text-ash-gray">{hint}</p>}
+      {action && (
+        <button
+          onClick={action.onClick}
+          className="mt-2 rounded-full bg-pinterest-red text-canvas-white px-6 py-2.5 text-body font-semibold"
+        >
+          {action.label}
+        </button>
+      )}
     </div>
   );
 }
@@ -42,7 +78,7 @@ export function HomePage() {
   const navigate = useNavigate();
   const [monuments, setMonuments] = useState<Array<Monument & { distance_m: number }>>([]);
   const [allMonuments, setAllMonuments] = useState<Monument[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [gpsState, setGpsState] = useState<"searching" | "denied" | "timeout" | "unavailable" | "done">("searching");
   const [userLat, setUserLat] = useState<number | null>(null);
   const [userLng, setUserLng] = useState<number | null>(null);
   const [view, setView] = useState<ViewMode>("list");
@@ -52,7 +88,7 @@ export function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (!navigator.geolocation) { setError(t("home.no_geolocation")); return; }
+    if (!navigator.geolocation) { setGpsState("unavailable"); return; }
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         setUserLat(pos.coords.latitude);
@@ -60,12 +96,20 @@ export function HomePage() {
         try {
           const nearby = await getNearbyMonuments(pos.coords.latitude, pos.coords.longitude, 5000);
           setMonuments(nearby);
-        } catch (err) { setError((err as Error).message); }
+        } catch {
+          // datos no disponibles pero GPS ok — mostrar lista vacía
+        } finally {
+          setGpsState("done");
+        }
       },
-      (err) => setError(err.message),
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) setGpsState("denied");
+        else if (err.code === err.TIMEOUT) setGpsState("timeout");
+        else setGpsState("unavailable");
+      },
       { enableHighAccuracy: true, timeout: 10000 },
     );
-  }, [t]);
+  }, []);
 
   return (
     <main className="min-h-full flex flex-col pb-24 bg-canvas-white">
@@ -128,20 +172,55 @@ export function HomePage() {
         </div>
       </div>
 
-      {error && (
-        <p className="mx-5 rounded-2xl bg-canvas-white px-4 py-3 text-body text-graphite mb-4 shadow-sm">
-          ⚠️ {error}
-        </p>
-      )}
-
       {/* Vista lista */}
       {view === "list" && (
         <div className="px-5 flex-1">
-          {monuments.length === 0 && !error && (
+          {/* Spinner buscando GPS */}
+          {gpsState === "searching" && (
             <div className="flex flex-col items-center pt-16 gap-3">
-              <div className="w-8 h-8 rounded-full border-3 border-ash-gray border-t-transparent animate-spin" />
+              <div className="w-8 h-8 rounded-full border-[3px] border-ash-gray border-t-transparent animate-spin" />
               <p className="text-body text-ash-gray">{t("home.searching")}</p>
             </div>
+          )}
+
+          {/* GPS denegado */}
+          {gpsState === "denied" && (
+            <EmptyState
+              icon="📍"
+              title={t("home.location_denied")}
+              hint="Ve a Ajustes > Privacidad > Ubicación y permite el acceso a tu navegador."
+              action={{ label: t("home.see_map"), onClick: () => setView("map") }}
+            />
+          )}
+
+          {/* Timeout GPS */}
+          {gpsState === "timeout" && (
+            <EmptyState
+              icon="⏱️"
+              title={t("home.location_timeout")}
+              hint="Sal al exterior e inténtalo de nuevo."
+              action={{ label: "Reintentar", onClick: () => window.location.reload() }}
+            />
+          )}
+
+          {/* GPS no disponible */}
+          {gpsState === "unavailable" && (
+            <EmptyState
+              icon="🧭"
+              title={t("home.no_geolocation")}
+              hint="Prueba a abrirla en un dispositivo móvil."
+              action={{ label: t("home.see_map"), onClick: () => setView("map") }}
+            />
+          )}
+
+          {/* Sin monumentos cerca */}
+          {gpsState === "done" && monuments.length === 0 && (
+            <EmptyState
+              icon="🏛️"
+              title={t("home.none_nearby")}
+              hint={t("home.none_nearby_hint")}
+              action={{ label: t("home.see_map"), onClick: () => setView("map") }}
+            />
           )}
           <ul className="space-y-3">
             {monuments.map((m) => (
@@ -150,9 +229,9 @@ export function HomePage() {
                   onClick={() => navigate(`/monument/${m.id}`)}
                   className="w-full text-left rounded-3xl bg-canvas-white shadow-sm active:scale-[0.99] transition-transform overflow-hidden"
                 >
-                  <div className="flex gap-0">
+                  <div className="flex gap-0 h-[148px]">
                     {/* Foto */}
-                    <div className="w-36 shrink-0 self-stretch">
+                    <div className="w-36 shrink-0 h-full">
                       {m.reference_image_url ? (
                         <MonumentImage src={m.reference_image_url} alt={m.name} />
                       ) : (
@@ -172,7 +251,7 @@ export function HomePage() {
                     {/* Contenido */}
                     <div className="flex-1 min-w-0 p-4">
                       <div className="flex items-start justify-between gap-2 mb-1">
-                        <h2 className="text-subheading font-bold text-jet-black leading-snug flex-1">{m.name}</h2>
+                        <h2 className="text-subheading font-bold text-jet-black leading-snug flex-1 line-clamp-2">{m.name}</h2>
                         <div className="flex items-center gap-1 shrink-0 pt-0.5">
                           <span className="text-body-sm font-medium text-amber-700">{formatDistance(m.distance_m)}</span>
                           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-ash-gray">

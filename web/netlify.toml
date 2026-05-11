@@ -1,0 +1,9 @@
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data: https://*.supabase.co https://*.maptiler.com blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://*.maptiler.com; worker-src 'self' blob:; frame-src 'none'; object-src 'none'"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

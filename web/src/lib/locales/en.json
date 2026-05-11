@@ -4,10 +4,16 @@
     "tagline": "Monuments near you"
   },
   "home": {
-    "searching": "Searching…",
+    "searching": "Searching monuments near you…",
     "activate_ar": "Start AR",
     "scan_qr_hint": "Scan the QR code next to the monument",
-    "no_geolocation": "Geolocation not available on this device."
+    "no_geolocation": "Geolocation not available on this device.",
+    "location_denied": "Enable location access to see nearby monuments.",
+    "location_timeout": "GPS timed out. Check your connection and try again.",
+    "none_nearby": "No monuments within 5 km.",
+    "none_nearby_hint": "Get closer to Ciudad Real city centre or explore the map.",
+    "see_map": "View on map",
+    "location_denied_action": "How to enable location"
   },
   "ar": {
     "loading": "Loading monument…",

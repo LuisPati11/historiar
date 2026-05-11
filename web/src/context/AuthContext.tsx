@@ -21,13 +21,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    // getUser() va al servidor y devuelve user_metadata fresco (no el JWT cacheado)
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session) {
+        const { data: { user } } = await supabase.auth.getUser();
+        setSession(user ? { ...data.session, user } : data.session);
+      } else {
+        setSession(null);
+      }
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => {
-      setSession(s);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, s) => {
+      if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && s) {
+        // Refrescar desde servidor para que user_metadata incluya avatar/username del signup
+        const { data: { user } } = await supabase.auth.getUser();
+        setSession(user ? { ...s, user } : s);
+      } else {
+        setSession(s);
+      }
     });
 
     return () => subscription.unsubscribe();

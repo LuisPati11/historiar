@@ -26,13 +26,15 @@ export function FeedPage() {
   const navigate = useNavigate();
   const [events, setEvents] = useState<FeedEvent[]>([]);
   const [fetching, setFetching] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate("/auth", { state: { from: "/feed" } }); return; }
+    setFetchError(false);
     feedForMeRich(50)
       .then(setEvents)
-      .catch(console.error)
+      .catch(() => setFetchError(true))
       .finally(() => setFetching(false));
   }, [user, loading, navigate]);
 
@@ -59,19 +61,34 @@ export function FeedPage() {
       </header>
 
       {fetching && (
-        <div className="flex justify-center pt-16">
-          <div className="w-8 h-8 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
+        <div className="flex flex-col items-center pt-16 gap-3">
+          <div className="w-8 h-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
+          <p className="text-body-sm text-ash-gray">Cargando actividad…</p>
         </div>
       )}
 
-      {!fetching && events.length === 0 && (
+      {!fetching && fetchError && (
+        <div className="px-6 pt-8 text-center">
+          <p className="text-4xl mb-3">📡</p>
+          <p className="text-body font-semibold text-graphite">No se pudo cargar el feed</p>
+          <p className="text-body-sm text-ash-gray mt-1">Comprueba tu conexión e inténtalo de nuevo.</p>
+          <button
+            onClick={() => { setFetching(true); setFetchError(false); feedForMeRich(50).then(setEvents).catch(() => setFetchError(true)).finally(() => setFetching(false)); }}
+            className="mt-4 rounded-full border border-whisper-gray text-graphite px-6 py-2.5 text-body font-medium"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {!fetching && !fetchError && events.length === 0 && (
         <div className="px-6 pt-8 text-center">
           <p className="text-5xl mb-4">🧭</p>
           <p className="text-body font-semibold text-graphite">{t("feed.empty_title")}</p>
           <p className="text-body-sm text-ash-gray mt-1">{t("feed.empty_hint")}</p>
           <button
             onClick={() => navigate("/search")}
-            className="mt-4 rounded-2xl bg-pinterest-red text-canvas-white px-6 py-2.5 text-body font-medium"
+            className="mt-4 rounded-full bg-pinterest-red text-canvas-white px-6 py-2.5 text-body font-medium"
           >
             {t("feed.find_explorers")}
           </button>

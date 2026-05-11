@@ -4,6 +4,9 @@ const AVATARS = [
   { id: "pigeon", emoji: "🐦", label: "Paloma mensajera" },
   { id: "cat",    emoji: "🐱", label: "Gato detective"   },
   { id: "dog",    emoji: "🐶", label: "Perro aventurero" },
+  { id: "quijote", emoji: "⚔️", label: "Don Quijote"     },
+  { id: "sancho",   emoji: "🎒", label: "Sancho Panza"    },
+  { id: "dulcinea", emoji: "🌸", label: "Dulcinea"        },
 ] as const;
 
 export type AvatarId = (typeof AVATARS)[number]["id"];
@@ -57,10 +60,10 @@ export function AvatarImage({
   className = "",
 }: {
   avatarId: AvatarId | string | null | undefined;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 }) {
-  const sizeClass = { sm: "w-8 h-8", md: "w-10 h-10", lg: "w-16 h-16" }[size];
+  const sizeClass = { sm: "w-8 h-8", md: "w-10 h-10", lg: "w-16 h-16", xl: "w-20 h-20" }[size];
   const avatar = AVATARS.find((a) => a.id === avatarId);
 
   return (

@@ -25,11 +25,13 @@ export function UserProfilePage() {
   const [following, setFollowing] = useState<FollowUser[]>([]);
   const [amFollowing, setAmFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [showList, setShowList] = useState<"followers" | "following" | null>(null);
 
   useEffect(() => {
     if (!userId) return;
+    setLoadError(false);
     Promise.all([
       getPublicProfile(userId),
       getPublicUserMedals(userId),
@@ -40,7 +42,8 @@ export function UserProfilePage() {
     ]).then(([p, m, v, frs, fng, iF]) => {
       setProfile(p); setMedals(m); setVisitCount(v);
       setFollowers(frs); setFollowing(fng); setAmFollowing(iF);
-    }).finally(() => setLoading(false));
+    }).catch(() => setLoadError(true))
+      .finally(() => setLoading(false));
   }, [userId]);
 
   const handleFollow = async () => {
@@ -64,6 +67,17 @@ export function UserProfilePage() {
     return (
       <main className="min-h-full flex items-center justify-center">
         <div className="w-10 h-10 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
+      </main>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <main className="min-h-full flex flex-col items-center justify-center px-6 text-center gap-3">
+        <p className="text-4xl">📡</p>
+        <p className="text-subheading font-semibold text-graphite">No se pudo cargar el perfil</p>
+        <p className="text-body-sm text-ash-gray">Comprueba tu conexión e inténtalo de nuevo.</p>
+        <button onClick={() => navigate(-1)} className="mt-2 text-body-sm text-pinterest-red font-medium">← Volver</button>
       </main>
     );
   }
