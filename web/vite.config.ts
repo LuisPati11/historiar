@@ -28,9 +28,16 @@ export default defineConfig({
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
-        globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
-        // mind-ar + three.js producen un chunk grande (~3 MB). Es contenido estático
-        // que rara vez cambia y queremos que se precachee para uso offline.
+        globPatterns: [
+          "index.html",
+          "manifest.webmanifest",
+          "registerSW.js",
+          "assets/index-*.js",
+          "assets/index-*.css",
+          "icon-*.png",
+        ],
+        // Evitamos que el service worker descargue mapas, QR y pantallas secundarias
+        // al instalarse. Esos chunks se cargan bajo demanda al abrir cada pantalla.
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
           {

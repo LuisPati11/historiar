@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { searchProfiles, followUser, unfollowUser, type ProfileResult } from "../lib/supabase";
@@ -13,18 +13,36 @@ export function SearchPage() {
   const [searching, setSearching] = useState(false);
   const [followLoading, setFollowLoading] = useState<string | null>(null);
 
-  const handleSearch = async (value: string) => {
-    setQuery(value);
-    if (value.trim().length < 2) { setResults([]); return; }
-    setSearching(true);
-    try {
-      const data = await searchProfiles(value);
-      setResults(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
+  useEffect(() => {
+    const value = query.trim();
+    if (value.length < 2) {
+      setResults([]);
       setSearching(false);
+      return;
     }
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      setSearching(true);
+      try {
+        const data = await searchProfiles(value);
+        if (!cancelled) setResults(data);
+      } catch (err) {
+        if (!cancelled) console.error(err);
+      } finally {
+        if (!cancelled) setSearching(false);
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [query]);
+
+  const handleSearch = (value: string) => {
+    setQuery(value);
+    setSearching(true);
   };
 
   const toggleFollow = async (profile: ProfileResult) => {

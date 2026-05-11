@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getNearbyMonuments, getAllMonuments, type Monument } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import { AvatarImage } from "../components/AvatarPicker";
 import { BottomNav } from "../components/BottomNav";
-import { MonumentsMap } from "../components/MonumentsMap";
 
 type ViewMode = "list" | "map";
+
+const MonumentsMap = lazy(() => import("../components/MonumentsMap").then((m) => ({ default: m.MonumentsMap })));
 
 function MonumentImage({ src, alt }: { src: string; alt: string }) {
   const [status, setStatus] = useState<"loading" | "loaded" | "error">("loading");
@@ -298,7 +299,13 @@ export function HomePage() {
               <p className="text-body text-ash-gray">{t("home.searching")}</p>
             </div>
           ) : (
-            <MonumentsMap monuments={allMonuments} userLat={userLat} userLng={userLng} />
+            <Suspense fallback={
+              <div className="w-full h-full flex items-center justify-center bg-canvas-white rounded-3xl">
+                <div className="w-8 h-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
+              </div>
+            }>
+              <MonumentsMap monuments={allMonuments} userLat={userLat} userLng={userLng} />
+            </Suspense>
           )}
         </div>
       )}

@@ -17,6 +17,13 @@ const AuthContext = createContext<AuthContextValue>({
   signOut: async () => {},
 });
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
+  return Promise.race([
+    promise,
+    new Promise<null>((resolve) => window.setTimeout(() => resolve(null), ms)),
+  ]);
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,31 +32,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const syncLanguage = async (user: User) => {
       const metadata = user.user_metadata as { locale?: string } | undefined;
       let locale = normalizeLocale(metadata?.locale);
-      const { data } = await supabase.from("profiles").select("locale").eq("id", user.id).maybeSingle();
+      const profileResult = await withTimeout(
+        Promise.resolve(supabase.from("profiles").select("locale").eq("id", user.id).maybeSingle()),
+        2500,
+      );
+      const data = profileResult?.data;
       if (!metadata?.locale && data?.locale) locale = normalizeLocale(data.locale as string);
       if (i18n.resolvedLanguage !== locale) await i18n.changeLanguage(locale);
     };
 
-    // getUser() va al servidor y devuelve user_metadata fresco (no el JWT cacheado)
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (data.session) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) await syncLanguage(user);
-        setSession(user ? { ...data.session, user } : data.session);
-      } else {
-        setSession(null);
-      }
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
       setLoading(false);
+
+      if (data.session) {
+        void withTimeout(supabase.auth.getUser(), 2500).then((result) => {
+          const user = result?.data.user;
+          if (!user) return;
+          setSession({ ...data.session!, user });
+          void syncLanguage(user);
+        });
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, s) => {
+      setSession(s);
       if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && s) {
-        // Refrescar desde servidor para que user_metadata incluya avatar/username del signup
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) await syncLanguage(user);
-        setSession(user ? { ...s, user } : s);
-      } else {
-        setSession(s);
+        void withTimeout(supabase.auth.getUser(), 2500).then((result) => {
+          const user = result?.data.user;
+          if (!user) return;
+          setSession({ ...s, user });
+          void syncLanguage(user);
+        });
       }
     });
 
