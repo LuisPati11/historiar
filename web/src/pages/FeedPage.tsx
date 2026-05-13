@@ -61,10 +61,18 @@ export function FeedPage() {
       </header>
 
       {fetching && (
-        <div className="flex flex-col items-center pt-16 gap-3">
-          <div className="size-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
-          <p className="text-body-sm text-ash-gray">{t("feed.loading")}</p>
-        </div>
+        <ul className="px-6 space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <li key={i} className="flex items-start gap-3 rounded-3xl bg-canvas-white border border-whisper-gray p-4 animate-pulse">
+              <div className="size-10 rounded-full bg-whisper-gray shrink-0 mt-0.5" />
+              <div className="flex-1 space-y-2 pt-1">
+                <div className="h-4 bg-whisper-gray rounded-full w-3/4" />
+                <div className="h-3 bg-whisper-gray rounded-full w-1/3" />
+              </div>
+              <div className="size-6 rounded-full bg-whisper-gray shrink-0 mt-0.5" />
+            </li>
+          ))}
+        </ul>
       )}
 
       {!fetching && fetchError && (

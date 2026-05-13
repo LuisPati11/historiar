@@ -55,10 +55,10 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
     if (gyroCleanupRef.current) return;
     const handler = (e: DeviceOrientationEvent) => {
       if (isDragging.current) return;
-      const gamma = Math.max(-45, Math.min(45, e.gamma ?? 0));
-      const beta  = Math.max(-45, Math.min(45, (e.beta ?? 45) - 45));
-      target.current.ry = gamma * 0.55;
-      target.current.rx = beta  * 0.45;
+      const gamma = Math.max(-30, Math.min(30, e.gamma ?? 0));
+      const beta  = Math.max(-30, Math.min(30, (e.beta ?? 45) - 45));
+      target.current.ry = gamma * 0.47;
+      target.current.rx = beta  * 0.38;
     };
     window.addEventListener("deviceorientation", handler);
     gyroCleanupRef.current = () => {
@@ -95,8 +95,9 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
   const requestGyroFromGesture = async () => {
     if (typeof DeviceOrientationEvent === "undefined") return;
     if (typeof (DeviceOrientationEvent as any).requestPermission !== "function") return;
-    if (localStorage.getItem(GYRO_PERMISSION_KEY) === "granted") return;
-
+    // Siempre llamar requestPermission() en iOS — en nueva sesión es necesario
+    // aunque localStorage ya diga "granted", porque Safari requiere la llamada
+    // por gesto de usuario para que los eventos deviceorientation empiecen a disparar.
     try {
       const res = await (DeviceOrientationEvent as any).requestPermission();
       localStorage.setItem(GYRO_PERMISSION_KEY, res === "granted" ? "granted" : "denied");
@@ -112,8 +113,8 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
     const rect = cardRef.current.getBoundingClientRect();
     const dx = (e.clientX - (rect.left + rect.width  / 2)) / (rect.width  / 2);
     const dy = (e.clientY - (rect.top  + rect.height / 2)) / (rect.height / 2);
-    target.current.ry =  dx * 22;
-    target.current.rx = -dy * 22;
+    target.current.ry =  dx * 14;
+    target.current.rx = -dy * 14;
   };
 
   const handlePointerLeave = () => {
@@ -124,7 +125,7 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
     }
   };
 
-  const intensity  = Math.min(1, Math.sqrt(rx * rx + ry * ry) / 22);
+  const intensity  = Math.min(1, Math.sqrt(rx * rx + ry * ry) / 14);
   const glareX     = 50 + ry * 3;
   const glareY     = 50 - rx * 3;
   const sweepAngle = 130 + ry * 2 + rx * 1;
@@ -141,7 +142,12 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
                 sin overflow:hidden (que rompe 3D) ni isolation (que sangra en blanco)
         - Efectos: sin mix-blend-mode → gradientes semitransparentes normales
       */}
-      <div style={{ position: "relative", width: size, height: size }}>
+      {/* filter en el wrapper (no en el clip-path) → iOS Safari sigue los píxeles
+          visibles de la moneda y crea sombra circular correcta */}
+      <div style={{
+        position: "relative", width: size, height: size,
+        filter: `drop-shadow(0 ${4 + intensity * 3}px ${8 + intensity * 4}px rgba(0,0,0,0.22)) drop-shadow(0 0 ${3 + intensity * 8}px ${glowColor})`,
+      }}>
 
         {/* Perspectiva → coin rotada y clipada */}
         <div style={{ perspective: "900px", perspectiveOrigin: "50% 50%", width: "100%", height: "100%" }}>
@@ -157,13 +163,16 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
               width:  "100%",
               height: "100%",
               transform: `rotateX(${rx}deg) rotateY(${ry}deg)`,
-              clipPath: "circle(50% at 50% 50%)",
               cursor: "grab",
               position: "relative",
               userSelect: "none",
-              filter: `drop-shadow(0 ${8 + intensity * 4}px ${10 + intensity * 4}px rgba(0,0,0,0.22)) drop-shadow(0 0 ${5 + intensity * 5}px ${glowColor})`,
+              touchAction: "none",
             }}
           >
+            {/* Recorte circular en hijo (no en el elemento 3D) → evita artefacto
+                rectangular en iOS Safari cuando scale() desborda un clipPath en
+                el mismo elemento que tiene la perspectiva/rotación. */}
+            <div style={{ width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden", position: "relative" }}>
             {/* Imagen base */}
             <img
               src={imageUrl}
@@ -174,8 +183,8 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
                 height: "100%",
                 display: "block",
                 objectFit: "cover",
-                transform: "scale(1.14)",
-                transformOrigin: "50% 50%",
+                transform: "scale(1.38)",
+                transformOrigin: "50% 40%",
               }}
             />
 
@@ -218,6 +227,7 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
                 pointerEvents: "none",
               }}
             />
+            </div>
           </div>
         </div>
       </div>
@@ -266,7 +276,7 @@ export function MedalModal({
     : null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden">
       {/* Fondo: foto del monumento muy difuminada y muy brillante → efecto crema cálida */}
       <div
         className="fixed inset-0"
@@ -298,7 +308,7 @@ export function MedalModal({
 
         {/* Moneda 3D */}
         <div className="mb-3 mt-2">
-          <MedalCard imageUrl={imageUrl} name={name} description={description} tier={tier} size={260} hideInfo />
+          <MedalCard imageUrl={imageUrl} name={name} description={description} tier={tier} size={290} hideInfo />
         </div>
 
         {/* Separador rojo */}

@@ -22,13 +22,12 @@ values
    'Declarada Monumento Histórico-Artístico Nacional en 1915 y restaurada en varias ocasiones.', 2);
 
 -- Medalla individual de la Puerta de Toledo
-insert into public.medals (id, name, description, tier, points_reward)
+insert into public.medals (id, name, description, tier)
 values (
   '22222222-2222-2222-2222-222222222222',
   'Centinela de la Puerta de Toledo',
   'Has visitado la Puerta de Toledo en Ciudad Real.',
-  'bronze',
-  10
+  'bronze'
 );
 
 insert into public.medal_requirements (medal_id, monument_id)

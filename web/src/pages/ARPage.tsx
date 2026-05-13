@@ -39,6 +39,13 @@ export function ARPage() {
     }
 
     (async () => {
+      // Arrancar GPS y carga del monumento en paralelo
+      const gpsPromise = new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true, maximumAge: 30_000, timeout: 15_000,
+        });
+      });
+
       const m = await getMonument(cleanId, currentLocale());
       if (!m) {
         setGpsStatus("error");
@@ -47,30 +54,31 @@ export function ARPage() {
       setMonument(m);
       setGpsStatus("checking");
 
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          try {
-            const within = await checkMonumentWithin(cleanId, pos.coords.latitude, pos.coords.longitude);
-            setGpsStatus(within ? "close" : "far");
-          } catch {
-            setGpsStatus("error");
-          }
-        },
-        (err) => {
-          setGpsStatus(err.code === err.PERMISSION_DENIED ? "denied" : "error");
-        },
-        { enableHighAccuracy: true, maximumAge: 30_000, timeout: 15_000 },
-      );
+      try {
+        const pos = await gpsPromise;
+        const within = await checkMonumentWithin(cleanId, pos.coords.latitude, pos.coords.longitude);
+        setGpsStatus(within ? "close" : "far");
+      } catch (err) {
+        const geoErr = err as GeolocationPositionError;
+        setGpsStatus(geoErr?.code === geoErr?.PERMISSION_DENIED ? "denied" : "error");
+      }
     })();
   }, [monumentId]);
 
   const startExperience = () => {
     setExperienceStarted(true);
+    // Llamar play() directamente en el handler del click (gesto de usuario iOS).
+    // El video ya está en el DOM gracias al pre-render oculto.
+    if (videoRef.current) {
+      videoRef.current.muted = true;
+      void videoRef.current.play().catch(() => {});
+    }
+    if (audioRef.current) void audioRef.current.play().catch(() => {});
+
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          await validateVisit(monument!.id, pos.coords.latitude, pos.coords.longitude, false);
-          // Esperar un momento para que los triggers de BBDD ejecuten
+          await validateVisit(monument!.id, pos.coords.latitude, pos.coords.longitude, true);
           await new Promise((r) => setTimeout(r, 1500));
           const medals = await getNewlyEarnedMedals(monument!.id);
           if (medals.length) setEarnedMedals(medals);
@@ -82,17 +90,6 @@ export function ARPage() {
       { enableHighAccuracy: true, maximumAge: 60_000 },
     );
   };
-
-  useEffect(() => {
-    if (!experienceStarted) return;
-    const video = videoRef.current;
-    const audio = audioRef.current;
-    if (video) {
-      video.muted = true;
-      void video.play().catch(() => {});
-    }
-    if (audio) void audio.play().catch(() => {});
-  }, [experienceStarted]);
 
   const closeExperience = () => {
     videoRef.current?.pause();
@@ -145,7 +142,7 @@ export function ARPage() {
             {(gpsStatus === "loading" || gpsStatus === "checking") && (
               <div className="flex flex-col items-center gap-3 text-center">
                 <div className="size-12 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
-                <p className="text-body text-ash-gray">
+                <p className="text-body text-canvas-white/70">
                   {gpsStatus === "loading" ? t("ar.loading") : t("ar.gps_checking")}
                 </p>
               </div>
@@ -194,22 +191,28 @@ export function ARPage() {
           </>
         )}
 
-        {/* Reproducción de vídeo */}
-        {experienceStarted && monument?.video_url && (
+        {/* Vídeo: siempre en el DOM. Oculto via posición absoluta 1×1px (no display:none)
+            para que iOS acepte play() desde el gesto de usuario. */}
+        {monument?.video_url && (
           <video
             ref={videoRef}
             src={monument.video_url}
             playsInline
             muted
+            preload="auto"
             onEnded={onMediaEnded}
-            className="w-full max-w-3xl rounded-3xl shadow-2xl"
+            className="w-full max-w-3xl rounded-3xl shadow-2xl aspect-video bg-black"
+            style={experienceStarted
+              ? {}
+              : { position: "absolute", width: "1px", height: "1px", opacity: 0, pointerEvents: "none" }}
           />
         )}
       </div>
 
-      {/* Audio narrado */}
-      {experienceStarted && monument?.audio_url && (
-        <audio ref={audioRef} src={monument.audio_url} onEnded={onMediaEnded} />
+      {/* Audio narrado: pre-renderizado oculto */}
+      {monument?.audio_url && (
+        <audio ref={audioRef} src={monument.audio_url} onEnded={onMediaEnded}
+          style={{ display: "none" }} />
       )}
 
       {/* Celebración de medalla */}

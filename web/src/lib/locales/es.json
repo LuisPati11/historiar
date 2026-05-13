@@ -14,6 +14,7 @@
     "no_geolocation_hint": "Prueba a abrirla en un dispositivo móvil.",
     "searching": "Buscando monumentos cerca de ti…",
     "activate_ar": "Activar AR",
+    "nearby_count": "{{count}} monumentos cerca",
     "scan_qr_hint": "Escanea el código QR junto al monumento",
     "no_geolocation": "Geolocalización no disponible en este dispositivo.",
     "location_denied": "Activa la ubicación para ver los monumentos más cercanos.",
@@ -136,7 +137,9 @@
     "load_error_hint": "Comprueba tu conexión e inténtalo de nuevo.",
     "empty_title": "Sin colecciones aún",
     "empty_hint": "Visita monumentos para desbloquear colecciones y ganar medallas.",
-    "explore_monuments": "Explorar monumentos"
+    "explore_monuments": "Explorar monumentos",
+    "visited": "visitados",
+    "see_collection": "Ver colección"
   },
   "medal": {
     "earned_on": "Conseguida el {{date}}",
@@ -150,6 +153,10 @@
     "monuments_discovered": "monumentos\ndescubiertos",
     "rotate_title": "Gira la medalla",
     "rotate_hint": "con el dedo o el móvil",
+    "celebration_title": "¡Medalla conseguida!",
+    "celebration_subtitle": "Visita registrada correctamente",
+    "collection_label": "Colección",
+    "continue": "Continuar",
     "new_medal": "✨ Nueva medalla",
     "next": "Ver siguiente →",
     "done": "¡Increíble!",
@@ -164,7 +171,7 @@
     "loading": "Cargando mapa…",
     "load_error_title": "El mapa está tardando demasiado",
     "load_error_hint": "Comprueba la conexión e inténtalo de nuevo.",
-    "view_detail": "Ver detalle →"
+    "view_detail": "Ver detalle"
   },
   "common": {
     "close": "Cerrar",

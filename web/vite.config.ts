@@ -28,6 +28,8 @@ export default defineConfig({
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
+        cleanupOutdatedCaches: true,
+        // Solo precachear el shell mínimo. Chunks lazy → NetworkFirst en runtime.
         globPatterns: [
           "index.html",
           "manifest.webmanifest",
@@ -36,10 +38,19 @@ export default defineConfig({
           "assets/index-*.css",
           "icon-*.png",
         ],
-        // Evitamos que el service worker descargue mapas, QR y pantallas secundarias
-        // al instalarse. Esos chunks se cargan bajo demanda al abrir cada pantalla.
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
+          {
+            // Chunks lazy de la app: red primero, caché como fallback
+            urlPattern: /\/assets\/.+\.js$/,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "js-chunks",
+              networkTimeoutSeconds: 6,
+              expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
           {
             urlPattern: /^https:\/\/api\.maptiler\.com\/.*/i,
             handler: "StaleWhileRevalidate",
@@ -61,6 +72,17 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-i18n":  ["i18next", "react-i18next"],
+          "vendor-supabase": ["@supabase/supabase-js"],
+        },
+      },
+    },
+  },
   server: {
     host: true,
     port: 5173,

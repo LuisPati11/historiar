@@ -97,8 +97,29 @@ export function ProfilePage() {
 
   if (loading || dataLoading) {
     return (
-      <main className="min-h-full flex items-center justify-center">
-        <div className="size-10 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
+      <main className="h-full overflow-y-auto pb-24 bg-[#F5F2EE] animate-pulse">
+        <div className="h-52 bg-whisper-gray" />
+        <div className="-mt-6 px-5">
+          <div className="flex items-end gap-4 mb-5">
+            <div className="size-20 rounded-full bg-[#ddd] ring-4 ring-[#F5F2EE] shrink-0" />
+            <div className="pb-1 space-y-2">
+              <div className="h-5 w-32 bg-whisper-gray rounded-full" />
+              <div className="h-3 w-24 bg-whisper-gray rounded-full" />
+            </div>
+          </div>
+          <div className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 mb-6 h-14" />
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-3xl bg-canvas-white border border-whisper-gray h-24" />
+            ))}
+          </div>
+          <div className="h-5 w-24 bg-whisper-gray rounded-full mb-4" />
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-3xl bg-canvas-white border border-whisper-gray h-16" />
+            ))}
+          </div>
+        </div>
       </main>
     );
   }

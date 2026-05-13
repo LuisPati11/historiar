@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   getCollectionsProgress, type CollectionProgress,
+  getCollectionMonuments, type CollectionMonument,
   getLeaderboard, getMyRank, type LeaderboardEntry,
 } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
@@ -10,49 +11,111 @@ import { AvatarImage } from "../components/AvatarPicker";
 import { BottomNav } from "../components/BottomNav";
 import { TIER_CONFIG as TIER_BASE } from "../lib/tierConfig";
 
-// ─── Colecciones ────────────────────────────────────────────────────────────
+// ─── Tier styles ─────────────────────────────────────────────────────────────
 
-const TIER_BAR: Record<string, string> = {
-  bronze: "bg-amber-500", silver: "bg-slate-400", gold: "bg-yellow-400", diamond: "bg-blue-400",
+const TIER_MEDAL_COLOR: Record<string, { stroke: string; fill: string; badge: string }> = {
+  bronze:   { stroke: "#c0392b", fill: "#fff1f0", badge: "bg-red-50 text-red-700 border-red-100" },
+  silver:   { stroke: "#94a3b8", fill: "#f8fafc", badge: "bg-slate-50 text-slate-600 border-slate-200" },
+  gold:     { stroke: "#d4a017", fill: "#fffbeb", badge: "bg-amber-50 text-amber-700 border-amber-200" },
+  diamond:  { stroke: "#38bdf8", fill: "#f0f9ff", badge: "bg-sky-50 text-sky-700 border-sky-200" },
 };
 
-function CollectionCard({ c }: { c: CollectionProgress }) {
-  const { t, i18n } = useTranslation();
+function MedalCircleIcon({ tier, done }: { tier: string; done: boolean }) {
+  const c = TIER_MEDAL_COLOR[tier] ?? TIER_MEDAL_COLOR.bronze;
+  const stroke = done ? c.stroke : "#94a3b8";
+  const bg = done ? c.fill : "#f8fafc";
+  return (
+    <div
+      className="shrink-0 rounded-full flex items-center justify-center"
+      style={{ width: 52, height: 52, background: bg, border: `2px solid ${stroke}` }}
+    >
+      <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+        <path d="M11 2h6l-2 7h-2L11 2z" fill={done ? stroke : "#cbd5e1"} opacity="0.5" />
+        <circle cx="14" cy="18" r="8" stroke={done ? stroke : "#cbd5e1"} strokeWidth="1.8" fill="none" />
+        <path d="M14 12.5l1.2 2.4 2.7.4-1.95 1.9.46 2.7L14 18.6l-2.41 1.3.46-2.7L10.1 15.3l2.7-.4L14 12.5z"
+          fill={done ? stroke : "#cbd5e1"} />
+      </svg>
+    </div>
+  );
+}
+
+// ─── Colecciones ─────────────────────────────────────────────────────────────
+
+function CollectionCard({ c, monuments }: { c: CollectionProgress; monuments: CollectionMonument[] }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const tier = TIER_BASE[c.medal_tier] ?? TIER_BASE.bronze;
-  const bar  = TIER_BAR[c.medal_tier] ?? "bg-amber-500";
-  const pct  = c.total_monuments > 0 ? Math.round((c.visited_monuments / c.total_monuments) * 100) : 0;
+  const mc = TIER_MEDAL_COLOR[c.medal_tier] ?? TIER_MEDAL_COLOR.bronze;
+  const pct = c.total_monuments > 0 ? Math.round((c.visited_monuments / c.total_monuments) * 100) : 0;
   const done = !!c.earned_at;
+  const loading = monuments.length === 0;
+
+  // Mostrar max 3 miniaturas; si hay más, el +N va como overlay en la última
+  const visible = monuments.slice(0, 3);
+  const extra = c.total_monuments - 3;
 
   return (
-    <div className={`rounded-3xl border p-5 ${done ? "bg-highlight-yellow/20 border-yellow-300" : "bg-canvas-white border-whisper-gray"}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <h2 className="text-subheading font-semibold text-graphite leading-snug">{c.collection_name}</h2>
-          {c.collection_description && (
-            <p className="text-body text-ash-gray mt-0.5 line-clamp-2">{c.collection_description}</p>
-          )}
+    <div className="bg-canvas-white rounded-2xl border border-whisper-gray shadow-sm overflow-hidden">
+      <div className="p-4 pb-3">
+        {/* Miniaturas + ícono medalla */}
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="flex gap-1.5">
+            {loading
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="size-[62px] rounded-xl bg-whisper-gray shrink-0 animate-pulse" />
+                ))
+              : visible.map((m, idx) => {
+                  const isLast = idx === visible.length - 1 && extra > 0;
+                  return (
+                    <div key={m.id} className="relative size-[62px] rounded-xl overflow-hidden bg-whisper-gray shrink-0">
+                      {m.reference_image_url
+                        ? <img src={m.reference_image_url} alt="" className="w-full h-full object-cover" />
+                        : <div className="w-full h-full bg-whisper-gray" />}
+                      {isLast && (
+                        <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
+                          <span className="text-canvas-white text-sm font-bold">+{extra}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+            }
+          </div>
+          <MedalCircleIcon tier={c.medal_tier} done={done} />
         </div>
-        <span className="text-3xl shrink-0">{tier?.emoji}</span>
+
+        {/* Nombre y descripción */}
+        <h2 className="text-body-lg font-bold text-jet-black leading-snug mb-1">{c.collection_name}</h2>
+        {c.collection_description && (
+          <p className="text-body-sm text-ash-gray mb-2.5 line-clamp-2">{c.collection_description}</p>
+        )}
+
+        {/* Badge de tier */}
+        <span className={`inline-flex items-center rounded-full border px-3 py-0.5 text-xs font-medium ${mc.badge}`}>
+          {tier?.label} · {c.medal_name}
+        </span>
       </div>
-      <div className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${tier?.colors ?? "bg-whisper-gray text-graphite"}`}>
-        {tier?.label} · {c.medal_name}
-      </div>
-      <div className="mt-4">
-        <div className="flex justify-between items-center mb-1.5">
-          <span className="text-xs font-medium text-ash-gray">
-            {done ? t("collections.completed_badge") : t("collections.progress", { visited: c.visited_monuments, total: c.total_monuments })}
+
+      {/* Separador + footer */}
+      <div className="border-t border-whisper-gray px-4 pt-3 pb-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-body-sm text-graphite font-medium">
+            {c.visited_monuments} / {c.total_monuments} {t("collections.visited")}
           </span>
-          <span className={`text-xs font-bold ${done ? "text-yellow-600" : "text-graphite"}`}>{pct}%</span>
+          <button
+            onClick={() => navigate(`/collections/${c.collection_id}`)}
+            className="text-pinterest-red text-body-sm font-semibold flex items-center gap-0.5"
+          >
+            {t("collections.see_collection")} <span className="text-base leading-none">›</span>
+          </button>
         </div>
-        <div className="h-2 rounded-full bg-whisper-gray overflow-hidden">
-          <div className={`h-full rounded-full transition-all ${done ? "bg-yellow-400" : bar}`} style={{ width: `${pct}%` }} />
+        <div className="h-1.5 rounded-full bg-whisper-gray overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all bg-pinterest-red"
+            style={{ width: `${pct}%` }}
+          />
         </div>
       </div>
-      {done && (
-        <p className="mt-2 text-xs text-yellow-700 font-medium">
-          {t("collections.earned_on", { date: new Date(c.earned_at!).toLocaleDateString(i18n.language, { day: "numeric", month: "long", year: "numeric" }) })}
-        </p>
-      )}
     </div>
   );
 }
@@ -167,12 +230,23 @@ export function CollectionsPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("collections");
   const [collections, setCollections] = useState<CollectionProgress[]>([]);
+  const [monumentsMap, setMonumentsMap] = useState<Record<string, CollectionMonument[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getCollectionsProgress()
-      .then(setCollections)
+      .then(async (data) => {
+        setCollections(data);
+        // Cargar imágenes de todas las colecciones en paralelo
+        const entries = await Promise.all(
+          data.map(c =>
+            getCollectionMonuments(c.collection_id, 3)
+              .then(m => [c.collection_id, m] as [string, CollectionMonument[]])
+          )
+        );
+        setMonumentsMap(Object.fromEntries(entries));
+      })
       .catch((e) => setError((e as Error).message))
       .finally(() => setLoading(false));
   }, []);
@@ -181,19 +255,23 @@ export function CollectionsPage() {
   const pending   = collections.filter(c => !c.earned_at);
 
   return (
-    <main className="min-h-full flex flex-col pb-24">
-      <header className="px-6 pt-8 pb-4">
-        <h1 className="text-heading-lg font-bold text-jet-black">{t("collections.title")}</h1>
+    <main className="min-h-full flex flex-col pb-24 bg-canvas-white">
+      <header className="px-5 pt-10 pb-3">
+        <h1 className="text-[2rem] font-black text-jet-black leading-none">{t("collections.title")}</h1>
       </header>
 
       {/* Tabs */}
-      <div className="px-6 mb-4">
-        <div className="flex rounded-2xl bg-whisper-gray p-1 w-fit">
+      <div className="px-5 mb-4">
+        <div className="flex rounded-full bg-whisper-gray p-1 w-fit">
           {(["collections", "ranking"] as Tab[]).map(tabName => (
             <button
               key={tabName}
               onClick={() => setTab(tabName)}
-              className={`rounded-xl px-4 py-1.5 text-body font-medium transition-colors ${tab === tabName ? "bg-canvas-white text-jet-black shadow-sm" : "text-ash-gray"}`}
+              className={`rounded-full px-5 py-2 text-body font-semibold transition-colors ${
+                tab === tabName
+                  ? "bg-canvas-white text-jet-black shadow-sm"
+                  : "text-ash-gray"
+              }`}
             >
               {tabName === "collections" ? t("collections.collections") : t("collections.ranking")}
             </button>
@@ -230,18 +308,15 @@ export function CollectionsPage() {
             </div>
           )}
           {!loading && !error && (
-            <div className="px-6 space-y-4">
+            <div className="px-5 space-y-4">
               {completed.length > 0 && (
                 <>
-                  <h3 className="text-body font-semibold text-ash-gray uppercase tracking-wide">{t("collections.completed")}</h3>
-                  {completed.map(c => <CollectionCard key={c.collection_id} c={c} />)}
-                  <div className="pt-2" />
+                  {completed.map(c => <CollectionCard key={c.collection_id} c={c} monuments={monumentsMap[c.collection_id] ?? []} />)}
                 </>
               )}
               {pending.length > 0 && (
                 <>
-                  {completed.length > 0 && <h3 className="text-body font-semibold text-ash-gray uppercase tracking-wide">{t("collections.in_progress")}</h3>}
-                  {pending.map(c => <CollectionCard key={c.collection_id} c={c} />)}
+                  {pending.map(c => <CollectionCard key={c.collection_id} c={c} monuments={monumentsMap[c.collection_id] ?? []} />)}
                 </>
               )}
               {collections.length === 0 && (

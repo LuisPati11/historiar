@@ -6,16 +6,31 @@ import { GyroPermissionBanner } from "./components/GyroPermissionBanner";
 import "./lib/i18n";
 import "./index.css";
 
-const HomePage = lazy(() => import("./pages/HomePage").then((m) => ({ default: m.HomePage })));
-const ARPage = lazy(() => import("./pages/ARPage").then((m) => ({ default: m.ARPage })));
-const AuthPage = lazy(() => import("./pages/AuthPage").then((m) => ({ default: m.AuthPage })));
-const ProfilePage = lazy(() => import("./pages/ProfilePage").then((m) => ({ default: m.ProfilePage })));
-const FeedPage = lazy(() => import("./pages/FeedPage").then((m) => ({ default: m.FeedPage })));
-const SearchPage = lazy(() => import("./pages/SearchPage").then((m) => ({ default: m.SearchPage })));
-const ScanPage = lazy(() => import("./pages/ScanPage").then((m) => ({ default: m.ScanPage })));
-const UserProfilePage = lazy(() => import("./pages/UserProfilePage").then((m) => ({ default: m.UserProfilePage })));
-const CollectionsPage = lazy(() => import("./pages/CollectionsPage").then((m) => ({ default: m.CollectionsPage })));
-const MonumentDetailPage = lazy(() => import("./pages/MonumentDetailPage").then((m) => ({ default: m.MonumentDetailPage })));
+// Chunk obsoleto tras deploy → recargar para que el SW sirva los assets nuevos.
+window.addEventListener("vite:preloadError", () => window.location.reload());
+
+// Wrapper que recarga la página si un chunk lazy da error (hash obsoleto o 404).
+function lazyPage<T extends { default: React.ComponentType }>(
+  factory: () => Promise<T>,
+): React.LazyExoticComponent<T["default"]> {
+  return lazy(() =>
+    factory().catch(() => {
+      window.location.reload();
+      return new Promise<never>(() => {});
+    }),
+  );
+}
+
+const HomePage         = lazyPage(() => import("./pages/HomePage").then((m) => ({ default: m.HomePage })));
+const ARPage           = lazyPage(() => import("./pages/ARPage").then((m) => ({ default: m.ARPage })));
+const AuthPage         = lazyPage(() => import("./pages/AuthPage").then((m) => ({ default: m.AuthPage })));
+const ProfilePage      = lazyPage(() => import("./pages/ProfilePage").then((m) => ({ default: m.ProfilePage })));
+const FeedPage         = lazyPage(() => import("./pages/FeedPage").then((m) => ({ default: m.FeedPage })));
+const SearchPage       = lazyPage(() => import("./pages/SearchPage").then((m) => ({ default: m.SearchPage })));
+const ScanPage         = lazyPage(() => import("./pages/ScanPage").then((m) => ({ default: m.ScanPage })));
+const UserProfilePage  = lazyPage(() => import("./pages/UserProfilePage").then((m) => ({ default: m.UserProfilePage })));
+const CollectionsPage  = lazyPage(() => import("./pages/CollectionsPage").then((m) => ({ default: m.CollectionsPage })));
+const MonumentDetailPage = lazyPage(() => import("./pages/MonumentDetailPage").then((m) => ({ default: m.MonumentDetailPage })));
 
 function RouteFallback() {
   return (

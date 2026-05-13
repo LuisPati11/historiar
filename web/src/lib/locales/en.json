@@ -14,6 +14,7 @@
     "no_geolocation_hint": "Try opening it on a mobile device.",
     "searching": "Searching monuments near you…",
     "activate_ar": "Start AR",
+    "nearby_count": "{{count}} monuments nearby",
     "scan_qr_hint": "Scan the QR code next to the monument",
     "no_geolocation": "Geolocation not available on this device.",
     "location_denied": "Enable location access to see nearby monuments.",
@@ -136,7 +137,9 @@
     "load_error_hint": "Check your connection and try again.",
     "empty_title": "No collections yet",
     "empty_hint": "Visit monuments to unlock collections and earn medals.",
-    "explore_monuments": "Explore monuments"
+    "explore_monuments": "Explore monuments",
+    "visited": "visited",
+    "see_collection": "See collection"
   },
   "medal": {
     "earned_on": "Earned on {{date}}",
@@ -150,6 +153,10 @@
     "monuments_discovered": "monuments\ndiscovered",
     "rotate_title": "Rotate the medal",
     "rotate_hint": "with your finger or phone",
+    "celebration_title": "Medal earned!",
+    "celebration_subtitle": "Visit registered successfully",
+    "collection_label": "Collection",
+    "continue": "Continue",
     "new_medal": "✨ New medal",
     "next": "See next →",
     "done": "Amazing!",
@@ -164,7 +171,7 @@
     "loading": "Loading map…",
     "load_error_title": "The map is taking too long",
     "load_error_hint": "Check your connection and try again.",
-    "view_detail": "View details →"
+    "view_detail": "View details"
   },
   "common": {
     "close": "Close",

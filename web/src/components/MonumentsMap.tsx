@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import Map, { Marker, Popup, NavigationControl } from "react-map-gl/maplibre";
+import Map, { Marker, NavigationControl } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Monument } from "../lib/supabase";
 
@@ -11,8 +11,39 @@ interface Props {
   userLng: number | null;
 }
 
-interface SelectedMonument {
-  monument: Monument & { distance_m?: number };
+function formatDistance(m: number) {
+  if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
+  return `${Math.round(m)} m`;
+}
+
+function BuildingIcon({ color = "#1A1A1A" }: { color?: string }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 36 36" fill="none">
+      <line x1="4" y1="30" x2="32" y2="30" stroke={color} strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="10" y1="30" x2="10" y2="18" stroke={color} strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="18" y1="30" x2="18" y2="18" stroke={color} strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="26" y1="30" x2="26" y2="18" stroke={color} strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="6" y1="18" x2="30" y2="18" stroke={color} strokeWidth="2.5" strokeLinecap="round"/>
+      <polyline points="4,16 18,7 32,16" stroke={color} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+function QRIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+      <rect x="1" y="1" width="5" height="5" rx="0.8" stroke="white" strokeWidth="1.3"/>
+      <rect x="8" y="1" width="5" height="5" rx="0.8" stroke="white" strokeWidth="1.3"/>
+      <rect x="1" y="8" width="5" height="5" rx="0.8" stroke="white" strokeWidth="1.3"/>
+      <rect x="2.5" y="2.5" width="2" height="2" fill="white" rx="0.3"/>
+      <rect x="9.5" y="2.5" width="2" height="2" fill="white" rx="0.3"/>
+      <rect x="2.5" y="9.5" width="2" height="2" fill="white" rx="0.3"/>
+      <rect x="8" y="8" width="1.8" height="1.8" fill="white" rx="0.2"/>
+      <rect x="10.2" y="8" width="1.8" height="1.8" fill="white" rx="0.2"/>
+      <rect x="8" y="10.2" width="1.8" height="1.8" fill="white" rx="0.2"/>
+      <rect x="10.2" y="10.2" width="1.8" height="1.8" fill="white" rx="0.2"/>
+    </svg>
+  );
 }
 
 export function MonumentsMap({ monuments, userLat, userLng }: Props) {
@@ -20,7 +51,7 @@ export function MonumentsMap({ monuments, userLat, userLng }: Props) {
   const navigate = useNavigate();
   const centerLat = userLat ?? 38.9959;
   const centerLng = userLng ?? -3.9278;
-  const [selected, setSelected] = useState<SelectedMonument | null>(null);
+  const [selected, setSelected] = useState<(Monument & { distance_m?: number }) | null>(null);
   const [mapKey, setMapKey] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
@@ -68,6 +99,7 @@ export function MonumentsMap({ monuments, userLat, userLng }: Props) {
         onError={() => {}}
         attributionControl={false}
         reuseMaps
+        onClick={() => setSelected(null)}
       >
         <NavigationControl position="bottom-right" showCompass={false} />
 
@@ -79,46 +111,76 @@ export function MonumentsMap({ monuments, userLat, userLng }: Props) {
         )}
 
         {/* Monumentos */}
-        {monuments.filter((m) => m.lat && m.lng).map((m) => (
-          <Marker
-            key={m.id}
-            longitude={m.lng!}
-            latitude={m.lat!}
-            anchor="center"
-            onClick={(e) => { e.originalEvent.stopPropagation(); setSelected({ monument: m }); }}
-          >
-            <div className="size-10 rounded-full bg-canvas-white border-2 border-whisper-gray shadow-md flex items-center justify-center text-xl cursor-pointer hover:scale-110 transition-transform">
-              🏛️
-            </div>
-          </Marker>
-        ))}
-
-        {/* Popup al tocar monumento */}
-        {selected && (
-          <Popup
-            longitude={selected.monument.lng!}
-            latitude={selected.monument.lat!}
-            anchor="bottom"
-            offset={24}
-            closeButton={false}
-            onClose={() => setSelected(null)}
-          >
-            <div className="px-1 py-1 min-w-[140px]">
-              <p className="font-semibold text-sm text-graphite leading-snug">{selected.monument.name}</p>
-              <p className="text-xs text-ash-gray mt-0.5">
-                {selected.monument.city}
-                {selected.monument.distance_m != null ? ` · ${Math.round(selected.monument.distance_m)} m` : ""}
-              </p>
-              <button
-                onClick={() => navigate(`/monument/${selected.monument.id}`)}
-                className="mt-2 text-xs font-semibold text-pinterest-red"
-              >
-                {t("map.view_detail")}
-              </button>
-            </div>
-          </Popup>
-        )}
+        {monuments.filter((m) => m.lat && m.lng).map((m) => {
+          const isSelected = selected?.id === m.id;
+          return (
+            <Marker
+              key={m.id}
+              longitude={m.lng!}
+              latitude={m.lat!}
+              anchor="center"
+              onClick={(e) => { e.originalEvent.stopPropagation(); setSelected(m); }}
+            >
+              <div className={`size-10 rounded-full border-2 shadow-md flex items-center justify-center cursor-pointer transition-all ${
+                isSelected
+                  ? "bg-pinterest-red border-canvas-white scale-110"
+                  : "bg-canvas-white border-whisper-gray"
+              }`}>
+                <BuildingIcon color={isSelected ? "white" : "#1A1A1A"} />
+              </div>
+            </Marker>
+          );
+        })}
       </Map>
+
+      {/* Tarjeta inferior al seleccionar monumento */}
+      {selected && (
+        <div
+          className="absolute left-4 right-4 z-10"
+          style={{ bottom: "calc(76px + env(safe-area-inset-bottom, 0px))" }}
+        >
+          <div className="rounded-3xl bg-canvas-white shadow-xl p-3 flex items-center gap-3">
+            <div className="size-20 rounded-2xl overflow-hidden shrink-0 bg-whisper-gray">
+              {selected.reference_image_url ? (
+                <img
+                  src={selected.reference_image_url}
+                  alt={selected.name}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <BuildingIcon color="#C0B9B0" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <p className="text-body font-bold text-jet-black truncate leading-snug">{selected.name}</p>
+              {selected.distance_m != null && (
+                <p className="text-body-sm text-ash-gray mt-0.5">
+                  🚶 {Math.round(selected.distance_m / 80)} min · {formatDistance(selected.distance_m)}
+                </p>
+              )}
+              <div className="flex gap-2 mt-2.5">
+                <button
+                  onClick={() => navigate(`/monument/${selected.id}`)}
+                  className="flex-1 rounded-2xl border border-whisper-gray bg-canvas-white text-graphite py-2 text-body-sm font-semibold active:bg-whisper-gray transition-colors"
+                >
+                  {t("map.view_detail")}
+                </button>
+                <button
+                  onClick={() => navigate(`/ar/${selected.id}`)}
+                  className="flex-1 rounded-2xl bg-pinterest-red text-canvas-white py-2 text-body-sm font-semibold flex items-center justify-center gap-1.5 active:brightness-90 transition-all"
+                >
+                  {t("home.activate_ar")}
+                  <QRIcon />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -19,7 +19,7 @@ export function UserProfilePage() {
 
   const [profile, setProfile] = useState<{
     id: string; display_name: string | null; avatar_url: string | null;
-    bio: string | null; total_points: number; is_public: boolean;
+    bio: string | null; is_public: boolean;
   } | null>(null);
   const [medals, setMedals] = useState<UserMedal[]>([]);
   const [visitCount, setVisitCount] = useState(0);
@@ -67,8 +67,27 @@ export function UserProfilePage() {
 
   if (loading) {
     return (
-      <main className="min-h-full flex items-center justify-center">
-        <div className="size-10 rounded-full border-4 border-pinterest-red border-t-transparent animate-spin" />
+      <main className="min-h-full pb-8 px-6 pt-8 max-w-screen-md mx-auto animate-pulse">
+        <div className="h-4 w-12 bg-whisper-gray rounded-full mb-8" />
+        <div className="flex items-center gap-4 mb-6">
+          <div className="size-16 rounded-full bg-whisper-gray shrink-0" />
+          <div className="flex-1 space-y-2">
+            <div className="h-5 w-32 bg-whisper-gray rounded-full" />
+            <div className="h-3 w-20 bg-whisper-gray rounded-full" />
+          </div>
+          <div className="h-9 w-20 rounded-2xl bg-whisper-gray shrink-0" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-3xl bg-canvas-white border border-whisper-gray h-20" />
+          ))}
+        </div>
+        <div className="h-5 w-24 bg-whisper-gray rounded-full mb-4 mt-8" />
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-3xl bg-canvas-white border border-whisper-gray h-16" />
+          ))}
+        </div>
       </main>
     );
   }
