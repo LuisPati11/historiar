@@ -142,20 +142,30 @@ function RankMedalIcon({ color }: { color: string }) {
 
 function GoldMedalBadge() {
   return (
-    <div className="shrink-0 flex flex-col items-center" style={{ width: 46 }}>
-      {/* Ribbon */}
-      <div className="flex gap-0.5 mb-0.5">
-        <div style={{ width: 9, height: 14, background: "#D4A017", clipPath: "polygon(0 0, 100% 0, 50% 100%)", borderRadius: 1 }}/>
-        <div style={{ width: 9, height: 14, background: "#E8C040", clipPath: "polygon(0 0, 100% 0, 50% 100%)", borderRadius: 1 }}/>
+    <div className="shrink-0 flex flex-col items-center" style={{ width: 50 }}>
+      {/* Cintas inclinadas */}
+      <div className="flex gap-1" style={{ height: 22, marginBottom: 1 }}>
+        <div style={{
+          width: 10, height: 22,
+          background: "linear-gradient(180deg, #D4A017, #A87010)",
+          borderRadius: "3px 3px 0 0",
+          transform: "skewX(-10deg)",
+        }}/>
+        <div style={{
+          width: 10, height: 22,
+          background: "linear-gradient(180deg, #F5C842, #D4A017)",
+          borderRadius: "3px 3px 0 0",
+          transform: "skewX(10deg)",
+        }}/>
       </div>
-      {/* Circle */}
+      {/* Círculo de medalla */}
       <div
-        className="size-10 rounded-full flex items-center justify-center text-lg font-black"
+        className="size-11 rounded-full flex items-center justify-center font-black text-xl"
         style={{
-          background: "linear-gradient(135deg, #F5C842 0%, #E09020 100%)",
+          background: "radial-gradient(circle at 38% 35%, #FFD966 0%, #E09020 100%)",
           color: "#7A5000",
-          boxShadow: "0 2px 8px rgba(212,160,23,0.45)",
-          border: "2px solid #E8A830",
+          boxShadow: "0 3px 10px rgba(180,120,0,0.5), inset 0 1px 2px rgba(255,255,255,0.35)",
+          border: "2.5px solid #C8880A",
         }}
       >
         1
@@ -166,18 +176,24 @@ function GoldMedalBadge() {
 
 function CathedralSilhouette() {
   return (
-    <svg width="72" height="96" viewBox="0 0 72 96" fill="currentColor">
-      <polygon points="24,32 36,8 48,32"/>
-      <rect x="28" y="32" width="16" height="52"/>
-      <rect x="8" y="50" width="14" height="34"/>
-      <rect x="50" y="50" width="14" height="34"/>
-      <rect x="3" y="82" width="66" height="6" rx="2"/>
-      <rect x="33" y="5" width="6" height="12"/>
-      <rect x="29" y="9" width="14" height="4"/>
-      <rect x="32" y="42" width="8" height="12" rx="4"/>
-      <rect x="12" y="58" width="6" height="9" rx="3"/>
-      <rect x="54" y="58" width="6" height="9" rx="3"/>
-      <rect x="33" y="68" width="6" height="14" rx="2"/>
+    <svg width="76" height="94" viewBox="0 0 76 94" fill="none">
+      {/* Cruz en la cima */}
+      <rect x="35" y="2" width="4" height="11" fill="#D4A017" fillOpacity="0.2"/>
+      <rect x="30" y="5" width="14" height="4" fill="#D4A017" fillOpacity="0.2"/>
+      {/* Silueta catedral: cuerpo central + alas laterales */}
+      <path
+        d="M0 88 L0 50 L14 50 L14 42 L19 42 L19 50 L27 50 L27 26 L37 4 L47 26 L47 50 L55 50 L55 42 L60 42 L60 50 L76 50 L76 88 Z"
+        fill="#D4A017"
+        fillOpacity="0.18"
+      />
+      {/* Ventana arco central */}
+      <path d="M32 36 Q37 28 42 36 L42 46 L32 46 Z" fill="white" fillOpacity="0.55"/>
+      {/* Ventanas laterales */}
+      <path d="M14 55 Q17 50 20 55 L20 63 L14 63 Z" fill="white" fillOpacity="0.55"/>
+      <path d="M54 55 Q57 50 60 55 L60 63 L54 63 Z" fill="white" fillOpacity="0.55"/>
+      {/* Puerta central arco */}
+      <path d="M33 88 Q37 79 41 88 L41 88 L33 88 Z" fill="white" fillOpacity="0.55"/>
+      <rect x="33" y="78" width="8" height="10" fill="white" fillOpacity="0.55"/>
     </svg>
   );
 }
@@ -192,7 +208,7 @@ function FirstPlaceCard({ entry, isMe }: { entry: LeaderboardEntry; isMe: boolea
       style={{ background: "#FFFBF0", borderColor: "#F0D080" }}
     >
       {/* Decoración catedral */}
-      <div className="absolute right-3 top-0 bottom-0 flex items-center" style={{ color: "#D4A017", opacity: 0.12 }}>
+      <div className="absolute right-3 top-0 bottom-0 flex items-center">
         <CathedralSilhouette />
       </div>
 
