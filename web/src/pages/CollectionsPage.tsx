@@ -199,7 +199,7 @@ function FirstPlaceCard({ entry, isMe }: { entry: LeaderboardEntry; isMe: boolea
       <div className="flex items-center gap-3 p-4 relative">
         <GoldMedalBadge />
 
-        <div className="size-16 rounded-full ring-2 overflow-hidden shrink-0" style={{ ringColor: "#E8C040", boxShadow: "0 0 0 2px #E8C040" }}>
+        <div className="size-16 rounded-full overflow-hidden shrink-0" style={{ boxShadow: "0 0 0 2px #E8C040" }}>
           <AvatarImage avatarId={entry.avatar_url} size="lg" />
         </div>
 
