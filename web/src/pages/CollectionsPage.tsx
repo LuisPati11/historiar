@@ -323,6 +323,7 @@ function RankingTab() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [myRank, setMyRank] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
     Promise.all([getLeaderboard(50), user ? getMyRank() : Promise.resolve(null)])
@@ -366,7 +367,10 @@ function RankingTab() {
           <p className="text-body font-bold text-jet-black">{t("collections.city_ranking_title")}</p>
           <p className="text-body-sm text-ash-gray">{t("collections.weekly_ranking")}</p>
         </div>
-        <button className="size-8 rounded-full bg-whisper-gray flex items-center justify-center text-ash-gray">
+        <button
+          onClick={() => setShowInfo(true)}
+          className="size-8 rounded-full bg-whisper-gray flex items-center justify-center text-ash-gray active:bg-[#e0e0e0] transition-colors"
+        >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3"/>
             <path d="M8 7v5M8 5.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
@@ -411,6 +415,36 @@ function RankingTab() {
 
           <InviteCard />
         </>
+      )}
+
+      {/* Modal info ranking */}
+      {showInfo && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-jet-black/40 backdrop-blur-sm"
+          onClick={() => setShowInfo(false)}
+        >
+          <div
+            className="bg-canvas-white rounded-t-3xl w-full max-w-lg px-6 pt-6 pb-10 space-y-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3">
+              <div className="size-10 rounded-full bg-whisper-gray flex items-center justify-center shrink-0">
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
+                  <circle cx="8" cy="8" r="6.5" stroke="#9E9E9E" strokeWidth="1.3"/>
+                  <path d="M8 7v5M8 5.5v.5" stroke="#9E9E9E" strokeWidth="1.4" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <h3 className="text-subheading font-bold text-jet-black">{t("collections.ranking_info_title")}</h3>
+            </div>
+            <p className="text-body text-graphite leading-relaxed">{t("collections.ranking_info_body")}</p>
+            <button
+              onClick={() => setShowInfo(false)}
+              className="w-full rounded-2xl bg-jet-black text-canvas-white py-3.5 text-body font-semibold"
+            >
+              {t("collections.ranking_info_close")}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
