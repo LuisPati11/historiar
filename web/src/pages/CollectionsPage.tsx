@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   getCollectionsProgress, type CollectionProgress,
@@ -122,35 +122,181 @@ function CollectionCard({ c, monuments }: { c: CollectionProgress; monuments: Co
 
 // ─── Ranking ────────────────────────────────────────────────────────────────
 
-const PODIUM = ["🥇", "🥈", "🥉"];
+function visitStr(count: number, t: (k: string) => string) {
+  return `${count} ${count === 1 ? t("collections.visit_one") : t("collections.visits_count")}`;
+}
+function medalStr(count: number, t: (k: string) => string) {
+  return `${count} ${count === 1 ? t("collections.medal_one") : t("collections.medals_count")}`;
+}
 
-function RankBadge({ rank }: { rank: number }) {
-  if (rank <= 3) return <span className="text-2xl leading-none">{PODIUM[rank - 1]}</span>;
+function RankMedalIcon({ color }: { color: string }) {
   return (
-    <span className="size-8 rounded-full bg-whisper-gray flex items-center justify-center text-xs font-bold text-ash-gray shrink-0">
-      {rank}
-    </span>
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+      <path d="M9 2h8l-1.8 5.5H10.8L9 2z" fill={color} opacity="0.55"/>
+      <circle cx="13" cy="17" r="7.5" fill={color} opacity="0.12"/>
+      <circle cx="13" cy="17" r="7.5" stroke={color} strokeWidth="1.4" fill="none"/>
+      <path d="M13 12.2l1.2 2.4 2.65.38-1.92 1.87.45 2.65L13 18.18l-2.38 1.32.45-2.65-1.92-1.87 2.65-.38L13 12.2z" fill={color}/>
+    </svg>
+  );
+}
+
+function GoldMedalBadge() {
+  return (
+    <div className="shrink-0 flex flex-col items-center" style={{ width: 46 }}>
+      {/* Ribbon */}
+      <div className="flex gap-0.5 mb-0.5">
+        <div style={{ width: 9, height: 14, background: "#D4A017", clipPath: "polygon(0 0, 100% 0, 50% 100%)", borderRadius: 1 }}/>
+        <div style={{ width: 9, height: 14, background: "#E8C040", clipPath: "polygon(0 0, 100% 0, 50% 100%)", borderRadius: 1 }}/>
+      </div>
+      {/* Circle */}
+      <div
+        className="size-10 rounded-full flex items-center justify-center text-lg font-black"
+        style={{
+          background: "linear-gradient(135deg, #F5C842 0%, #E09020 100%)",
+          color: "#7A5000",
+          boxShadow: "0 2px 8px rgba(212,160,23,0.45)",
+          border: "2px solid #E8A830",
+        }}
+      >
+        1
+      </div>
+    </div>
+  );
+}
+
+function CathedralSilhouette() {
+  return (
+    <svg width="72" height="96" viewBox="0 0 72 96" fill="currentColor">
+      <polygon points="24,32 36,8 48,32"/>
+      <rect x="28" y="32" width="16" height="52"/>
+      <rect x="8" y="50" width="14" height="34"/>
+      <rect x="50" y="50" width="14" height="34"/>
+      <rect x="3" y="82" width="66" height="6" rx="2"/>
+      <rect x="33" y="5" width="6" height="12"/>
+      <rect x="29" y="9" width="14" height="4"/>
+      <rect x="32" y="42" width="8" height="12" rx="4"/>
+      <rect x="12" y="58" width="6" height="9" rx="3"/>
+      <rect x="54" y="58" width="6" height="9" rx="3"/>
+      <rect x="33" y="68" width="6" height="14" rx="2"/>
+    </svg>
+  );
+}
+
+function FirstPlaceCard({ entry, isMe }: { entry: LeaderboardEntry; isMe: boolean }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  return (
+    <button
+      onClick={() => navigate(`/user/${entry.user_id}`)}
+      className="w-full text-left rounded-3xl border-2 overflow-hidden relative"
+      style={{ background: "#FFFBF0", borderColor: "#F0D080" }}
+    >
+      {/* Decoración catedral */}
+      <div className="absolute right-3 top-0 bottom-0 flex items-center" style={{ color: "#D4A017", opacity: 0.12 }}>
+        <CathedralSilhouette />
+      </div>
+
+      <div className="flex items-center gap-3 p-4 relative">
+        <GoldMedalBadge />
+
+        <div className="size-16 rounded-full ring-2 overflow-hidden shrink-0" style={{ ringColor: "#E8C040", boxShadow: "0 0 0 2px #E8C040" }}>
+          <AvatarImage avatarId={entry.avatar_url} size="lg" />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-0.5">
+            <p className="text-subheading font-bold text-jet-black">{entry.display_name ?? t("collections.explorer")}</p>
+            {isMe && (
+              <span className="rounded-full text-xs font-semibold px-2.5 py-0.5 border" style={{ background: "#FFF3D0", borderColor: "#F0C840", color: "#9A6A00" }}>
+                {t("collections.you_name")}
+              </span>
+            )}
+          </div>
+          <p className="text-body-sm font-semibold mb-2" style={{ color: "#C08A10" }}>{t("collections.leader")}</p>
+          <div className="flex items-center gap-3">
+            <span className="text-body-sm text-graphite flex items-center gap-1">
+              📍 <span className="font-semibold">{visitStr(entry.visit_count, t)}</span>
+            </span>
+            <span className="text-body-sm text-graphite flex items-center gap-1">
+              🏅 <span className="font-semibold">{medalStr(entry.medal_count, t)}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </button>
   );
 }
 
 function LeaderboardRow({ entry, isMe }: { entry: LeaderboardEntry; isMe: boolean }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const rankColor = entry.rank === 2 ? "#D4A017" : entry.rank === 3 ? "#C47830" : "#9E9E9E";
+  const medalColor = entry.medal_count > 0 ? "#D4A017" : "#C4C4C4";
+
   return (
-    <Link
-      to={`/user/${entry.user_id}`}
-      className={`flex items-center gap-3 rounded-2xl px-4 py-3 transition-colors ${isMe ? "bg-highlight-yellow/30 border border-yellow-300" : "bg-canvas-white border border-whisper-gray"}`}
+    <button
+      onClick={() => navigate(`/user/${entry.user_id}`)}
+      className="w-full flex items-center gap-3 bg-canvas-white rounded-2xl border border-whisper-gray px-4 py-3.5 active:bg-whisper-gray transition-colors text-left"
     >
-      <RankBadge rank={entry.rank} />
+      <span className="w-5 text-center text-body font-bold shrink-0" style={{ color: rankColor }}>
+        {entry.rank}
+      </span>
       <AvatarImage avatarId={entry.avatar_url} size="sm" />
       <div className="flex-1 min-w-0">
-        <p className={`text-body font-semibold truncate ${isMe ? "text-graphite" : "text-graphite"}`}>
+        <p className="text-body font-semibold text-jet-black truncate">
           {entry.display_name ?? t("collections.explorer")}
-          {isMe && <span className="ml-1.5 text-xs text-yellow-700 font-normal">· {t("collections.you")}</span>}
+          {isMe && <span className="ml-1.5 text-xs text-ash-gray">({t("collections.you")})</span>}
         </p>
-        <p className="text-xs text-ash-gray">{t("collections.stats", { visits: entry.visit_count, medals: entry.medal_count })}</p>
+        <p className="text-body-sm text-ash-gray flex items-center gap-1">
+          {entry.visit_count > 0
+            ? <><span>📍</span> {visitStr(entry.visit_count, t)}</>
+            : t("collections.no_explorations")
+          }
+        </p>
       </div>
-      <span className="text-body font-bold text-graphite shrink-0">{entry.medal_count} 🏅</span>
-    </Link>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <RankMedalIcon color={medalColor} />
+        <div className="text-right">
+          <p className="text-body font-bold text-jet-black leading-tight">{entry.medal_count}</p>
+          <p className="text-[10px] text-ash-gray leading-tight">
+            {entry.medal_count === 1 ? t("collections.medal_one") : t("collections.medals_count")}
+          </p>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function InviteCard() {
+  const { t } = useTranslation();
+  const handleInvite = () => {
+    if (navigator.share) {
+      void navigator.share({ title: "HistoriAR", url: window.location.origin });
+    } else {
+      void navigator.clipboard?.writeText(window.location.origin);
+    }
+  };
+  return (
+    <div className="flex items-center gap-3 rounded-2xl bg-whisper-gray px-4 py-3.5">
+      <div className="size-11 rounded-full bg-canvas-white flex items-center justify-center shrink-0">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <circle cx="8" cy="7" r="3" stroke="#9E9E9E" strokeWidth="1.4" fill="none"/>
+          <path d="M2 18c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="#9E9E9E" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
+          <circle cx="15.5" cy="7" r="2.5" stroke="#9E9E9E" strokeWidth="1.3" fill="none"/>
+          <path d="M17.5 18c1.2-.9 2-2.4 2-4" stroke="#9E9E9E" strokeWidth="1.3" strokeLinecap="round" fill="none"/>
+        </svg>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-body font-bold text-jet-black">{t("collections.invite_title")}</p>
+        <p className="text-body-sm text-ash-gray">{t("collections.invite_hint")}</p>
+      </div>
+      <button
+        onClick={handleInvite}
+        className="rounded-full bg-pinterest-red text-canvas-white px-5 py-2 text-body font-semibold shrink-0 active:brightness-90 transition-all"
+      >
+        {t("collections.invite_btn")}
+      </button>
+    </div>
   );
 }
 
@@ -169,18 +315,51 @@ function RankingTab() {
   }, [user]);
 
   if (loading) return (
-    <div className="flex flex-col items-center pt-16 gap-3">
-      <div className="size-8 rounded-full border-[3px] border-pinterest-red border-t-transparent animate-spin" />
-      <p className="text-body-sm text-ash-gray">{t("collections.loading_ranking")}</p>
+    <div className="px-5 space-y-2">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className={`rounded-2xl border border-whisper-gray bg-canvas-white px-4 py-3.5 flex items-center gap-3 animate-pulse ${i === 0 ? "h-24" : "h-16"}`}>
+          <div className="size-5 rounded-full bg-whisper-gray shrink-0"/>
+          <div className="size-10 rounded-full bg-whisper-gray shrink-0"/>
+          <div className="flex-1 space-y-2">
+            <div className="h-4 bg-whisper-gray rounded-full w-1/2"/>
+            <div className="h-3 bg-whisper-gray rounded-full w-1/3"/>
+          </div>
+          <div className="size-8 rounded-full bg-whisper-gray shrink-0"/>
+        </div>
+      ))}
     </div>
   );
 
+  const first = entries[0];
+  const rest  = entries.slice(1);
   const meInTop = user && entries.some(e => e.user_id === user.id);
 
   return (
-    <div className="px-6 space-y-2">
+    <div className="px-5 space-y-2.5">
+      {/* Cabecera sección */}
+      <div className="flex items-center gap-3 mb-1">
+        <div className="size-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+          <svg width="18" height="18" viewBox="0 0 22 22" fill="none">
+            <path d="M7 3h8v7a4 4 0 01-8 0V3z" stroke="#C0392B" strokeWidth="1.6" fill="none" strokeLinejoin="round"/>
+            <path d="M7 6H4a2 2 0 002 2h1M15 6h3a2 2 0 01-2 2h-1" stroke="#C0392B" strokeWidth="1.6" strokeLinecap="round"/>
+            <line x1="11" y1="14" x2="11" y2="18" stroke="#C0392B" strokeWidth="1.6" strokeLinecap="round"/>
+            <line x1="7" y1="19" x2="15" y2="19" stroke="#C0392B" strokeWidth="1.8" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <div className="flex-1">
+          <p className="text-body font-bold text-jet-black">{t("collections.city_ranking_title")}</p>
+          <p className="text-body-sm text-ash-gray">{t("collections.weekly_ranking")}</p>
+        </div>
+        <button className="size-8 rounded-full bg-whisper-gray flex items-center justify-center text-ash-gray">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3"/>
+            <path d="M8 7v5M8 5.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+          </svg>
+        </button>
+      </div>
+
       {!user && (
-        <div className="rounded-2xl bg-whisper-gray px-4 py-3 text-body text-graphite mb-4">
+        <div className="rounded-2xl bg-whisper-gray px-4 py-3 text-body text-graphite">
           <button onClick={() => navigate("/auth")} className="font-semibold text-pinterest-red underline">{t("auth.login_cta")}</button>
           {" "}{t("collections.sign_in_ranking")}
         </div>
@@ -194,26 +373,27 @@ function RankingTab() {
         </div>
       ) : (
         <>
-          {entries.map(e => (
+          {first && <FirstPlaceCard entry={first} isMe={user?.id === first.user_id} />}
+          {rest.map(e => (
             <LeaderboardRow key={e.user_id} entry={e} isMe={user?.id === e.user_id} />
           ))}
 
           {/* Tu posición si no estás en el top 50 */}
           {user && !meInTop && myRank && (
-            <div className="pt-2">
+            <div className="pt-1">
               <p className="text-xs text-center text-ash-gray pb-2">{t("collections.your_position")}</p>
-              <div className="flex items-center gap-3 rounded-2xl px-4 py-3 bg-highlight-yellow/30 border border-yellow-300">
-                <RankBadge rank={myRank} />
+              <div className="flex items-center gap-3 bg-canvas-white rounded-2xl border-2 border-amber-200 px-4 py-3.5" style={{ background: "#FFFBF0" }}>
+                <span className="w-5 text-center text-body font-bold text-ash-gray shrink-0">{myRank}</span>
                 <AvatarImage avatarId={(user.user_metadata as { avatar?: string })?.avatar} size="sm" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-body font-semibold text-graphite truncate">
-                    {(user.user_metadata as { username?: string })?.username ?? t("collections.you_name")}
-                    <span className="ml-1.5 text-xs text-yellow-700 font-normal">· {t("collections.you")}</span>
-                  </p>
-                </div>
+                <p className="text-body font-semibold text-graphite flex-1 truncate">
+                  {(user.user_metadata as { username?: string })?.username ?? t("collections.you_name")}
+                  <span className="ml-1.5 text-xs text-ash-gray">({t("collections.you")})</span>
+                </p>
               </div>
             </div>
           )}
+
+          <InviteCard />
         </>
       )}
     </div>
