@@ -2,10 +2,15 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Map, { Marker, NavigationControl } from "react-map-gl/maplibre";
+import { setWorkerUrl } from "maplibre-gl";
+import mapWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Monument } from "../lib/api/monuments";
 import { formatDistance } from "../lib/format";
 import { walkingMinutes } from "../lib/geo";
+
+// MapLibre 6 needs Vite to bundle its worker and the worker's shared imports.
+setWorkerUrl(mapWorkerUrl);
 
 interface Props {
   monuments: Array<Monument & { distance_m?: number }>;
