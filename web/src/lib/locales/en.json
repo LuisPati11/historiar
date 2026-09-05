@@ -4,6 +4,7 @@
     "tagline": "Monuments near you"
   },
   "home": {
+    "ar_available": "AR experience available",
     "title": "Explore",
     "list": "List",
     "map": "Map",
@@ -14,7 +15,8 @@
     "no_geolocation_hint": "Try opening it on a mobile device.",
     "searching": "Searching monuments near you…",
     "activate_ar": "Start AR",
-    "nearby_count": "{{count}} monuments nearby",
+    "nearby_count_one": "{{count}} monument nearby",
+    "nearby_count_other": "{{count}} monuments nearby",
     "scan_qr_hint": "Scan the QR code next to the monument",
     "no_geolocation": "Geolocation not available on this device.",
     "location_denied": "Enable location access to see nearby monuments.",
@@ -25,6 +27,7 @@
     "location_denied_action": "How to enable location"
   },
   "ar": {
+    "media_error": "The video or audio could not be played. Please try again.",
     "loading": "Loading monument…",
     "not_found": "Monument not found.",
     "no_content": "This monument doesn't have content yet.",
@@ -33,10 +36,19 @@
     "gps_far": "You need to be next to the monument to access this experience.",
     "gps_denied": "Enable location permission to verify you're at the monument.",
     "error": "Something went wrong. Please try again.",
+    "start_scanner": "Open AR camera",
+    "camera_starting": "Preparing the camera…",
+    "point_at_monument": "Point the camera at the monument façade",
+    "target_found": "Monument recognised!",
+    "camera_error": "The AR camera could not start. Check camera access and try again.",
+    "visit_not_saved": "The experience can continue, but this visit could not be saved.",
     "start_experience": "Start experience",
-    "experience_ended": "Experience complete!"
+    "experience_ended": "Experience complete!",
+    "restart": "Play again"
   },
   "auth": {
+    "email_placeholder": "you@email.com",
+    "generic_error": "Sign-in couldn't be completed. Check your details and try again.",
     "login_hero": "Explore the history\naround you",
     "register_hero": "Create your explorer account",
     "explorer_name": "Explorer name",
@@ -55,6 +67,8 @@
     "register_tagline": "Start discovering monuments",
     "email": "Email",
     "password": "Password",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
     "username": "Username",
     "username_placeholder": "explorer42",
     "skip": "Continue without account",
@@ -84,6 +98,8 @@
     "bio": "Bio",
     "make_public": "Public profile",
     "make_private": "Private profile",
+    "privacy_hint": "When enabled, other explorers can see your profile, medals and totals, but never your individual visits.",
+    "privacy_save_error": "Couldn't save your privacy setting. Please try again.",
     "language": "Language",
     "language_save_error": "Couldn't save the language. Please try again.",
     "saving": "Saving…",
@@ -144,7 +160,7 @@
     "invite_hint": "and climb the ranking together",
     "invite_btn": "Invite",
     "ranking_info_title": "How does the ranking work?",
-    "ranking_info_body": "The ranking sorts explorers by number of verified monument visits. Only GPS-confirmed visits count. It updates in real time.",
+    "ranking_info_body": "The ranking sorts public profiles by medals earned, then by verified visits. Visits require GPS and image tracking confirmation.",
     "ranking_info_close": "Got it",
     "loading": "Loading collections…",
     "load_error_title": "Couldn't load collections",
@@ -153,9 +169,14 @@
     "empty_hint": "Visit monuments to unlock collections and earn medals.",
     "explore_monuments": "Explore monuments",
     "visited": "visited",
-    "see_collection": "See collection"
+    "see_collection": "See collection",
+    "collection": "Collection",
+    "monuments": "Monuments",
+    "not_found": "This collection could not be found.",
+    "back_to_collections": "Back to collections"
   },
   "medal": {
+    "tier": {"bronze": "Bronze", "silver": "Silver", "gold": "Gold", "diamond": "Diamond"},
     "earned_on": "Earned on {{date}}",
     "rarity": {
       "bronze": "Individual · Town",
@@ -188,12 +209,19 @@
     "view_detail": "View details"
   },
   "common": {
+    "back": "Back",
     "close": "Close",
     "change_avatar": "Change avatar",
     "retry": "Retry",
     "connection_error": "Check your connection and try again.",
+    "action_error": "The action couldn't be completed. Try again.",
+    "unexpected_error": "Something went wrong",
+    "reload": "Reload app",
+    "not_found": "This page doesn't exist",
+    "back_home": "Back to home",
     "empty_users": "No users yet",
-    "explorer": "Explorer"
+    "explorer": "Explorer",
+    "loading": "Loading"
   },
   "avatar": {
     "quijote": "Don Quixote",

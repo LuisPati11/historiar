@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { feedForMeRich, type FeedEvent } from "../lib/supabase";
-import { useAuth } from "../context/AuthContext";
+import { feedForMeRich, type FeedEvent } from "../lib/api/social";
+import { useAuth } from "../context/authContext";
 import { AvatarImage } from "../components/AvatarPicker";
 import { BottomNav } from "../components/BottomNav";
 
@@ -27,16 +27,20 @@ export function FeedPage() {
   const [events, setEvents] = useState<FeedEvent[]>([]);
   const [fetching, setFetching] = useState(true);
   const [fetchError, setFetchError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate("/auth", { state: { from: "/feed" } }); return; }
+    let cancelled = false;
+    setFetching(true);
     setFetchError(false);
     feedForMeRich(50)
-      .then(setEvents)
-      .catch(() => setFetchError(true))
-      .finally(() => setFetching(false));
-  }, [user, loading, navigate]);
+      .then((items) => { if (!cancelled) setEvents(items); })
+      .catch(() => { if (!cancelled) setFetchError(true); })
+      .finally(() => { if (!cancelled) setFetching(false); });
+    return () => { cancelled = true; };
+  }, [user, loading, navigate, reloadKey, t]);
 
   function eventText(ev: FeedEvent): string {
     switch (ev.type) {
@@ -81,7 +85,7 @@ export function FeedPage() {
           <p className="text-body font-semibold text-graphite">{t("feed.load_error_title")}</p>
           <p className="text-body-sm text-ash-gray mt-1">{t("common.connection_error")}</p>
           <button
-            onClick={() => { setFetching(true); setFetchError(false); feedForMeRich(50).then(setEvents).catch(() => setFetchError(true)).finally(() => setFetching(false)); }}
+            onClick={() => setReloadKey((value) => value + 1)}
             className="mt-4 rounded-full border border-whisper-gray text-graphite px-6 py-2.5 text-body font-medium"
           >
             {t("common.retry")}
@@ -106,7 +110,7 @@ export function FeedPage() {
       <ul className="px-6 space-y-3">
         {events.map((ev) => (
           <li key={ev.id} className="flex items-start gap-3 rounded-3xl bg-canvas-white border border-whisper-gray p-4">
-            <button onClick={() => navigate(`/user/${ev.user_id}`)} className="shrink-0 mt-0.5">
+            <button type="button" onClick={() => navigate(`/user/${ev.user_id}`)} aria-label={ev.user_name} className="shrink-0 mt-0.5">
               <AvatarImage avatarId={ev.user_avatar} size="md" />
             </button>
             <div className="flex-1 min-w-0">

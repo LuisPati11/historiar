@@ -128,7 +128,7 @@ Registro e inicio de sesion con email. Al crear la cuenta, el usuario elige un *
 | Backend | Supabase (Postgres + PostGIS + Auth + Storage + Edge Functions) |
 | Verificacion de visita | Edge Function con validacion GPS server-side (ST_DWithin) |
 | Internacionalizacion | i18next (ES + EN desde el inicio) |
-| Distribucion web | PWA en Netlify |
+| Distribucion web | PWA en Vercel |
 | App nativa (proxima fase) | Capacitor (iOS + Android) |
 
 La arquitectura de verificacion de visita es **server-side**: el frontend nunca puede falsear una visita, ya que la validacion GPS la realiza una Edge Function con la service-role de Supabase, fuera del alcance del cliente.

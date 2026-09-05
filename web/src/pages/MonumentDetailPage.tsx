@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { getMonumentDetail, type MonumentDetail } from "../lib/supabase";
+import { getMonumentDetail, type MonumentDetail } from "../lib/api/monuments";
 import { currentLocale } from "../lib/i18n";
+import { formatDistance } from "../lib/format";
+import { haversineMeters, walkingMinutes } from "../lib/geo";
 
 function formatYear(y: number | null, t: (key: string, options?: Record<string, unknown>) => string): string {
   if (y === null) return "";
@@ -11,42 +13,33 @@ function formatYear(y: number | null, t: (key: string, options?: Record<string, 
   return String(y);
 }
 
-function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371000;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-function formatDist(m: number) {
-  return m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;
-}
-
-function walkMinutes(m: number) {
-  return Math.round(m / 80);
-}
-
 export function MonumentDetailPage() {
   const { t } = useTranslation();
   const { monumentId } = useParams<{ monumentId: string }>();
   const navigate = useNavigate();
   const [monument, setMonument] = useState<MonumentDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [distanceM, setDistanceM] = useState<number | null>(null);
   const [showFullDesc, setShowFullDesc] = useState(false);
 
   useEffect(() => {
     if (!monumentId) return;
+    let cancelled = false;
+    setLoading(true);
+    setFailed(false);
     getMonumentDetail(monumentId, currentLocale())
-      .then(setMonument)
-      .finally(() => setLoading(false));
-  }, [monumentId]);
+      .then((item) => { if (!cancelled) setMonument(item); })
+      .catch(() => { if (!cancelled) setFailed(true); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [monumentId, reloadKey, t]);
 
   useEffect(() => {
-    if (!monument?.lat || !monument?.lng) return;
+    if (monument?.lat == null || monument.lng == null) return;
     navigator.geolocation?.getCurrentPosition(
-      pos => setDistanceM(haversineM(pos.coords.latitude, pos.coords.longitude, monument.lat!, monument.lng!)),
+      pos => setDistanceM(haversineMeters(pos.coords.latitude, pos.coords.longitude, monument.lat!, monument.lng!)),
       () => {}, { enableHighAccuracy: false, timeout: 5000 }
     );
   }, [monument]);
@@ -62,13 +55,18 @@ export function MonumentDetailPage() {
   if (!monument) {
     return (
       <div className="min-h-full flex flex-col items-center justify-center gap-4 px-6">
-        <p className="text-subheading font-semibold text-graphite">{t("monument.not_found")}</p>
-        <button onClick={() => navigate(-1)} className="text-pinterest-red text-body font-medium">{t("nav.back")}</button>
+        <p className="text-subheading font-semibold text-graphite">{failed ? t("common.unexpected_error") : t("monument.not_found")}</p>
+        <p className="text-body-sm text-ash-gray">{failed ? t("common.connection_error") : ""}</p>
+        {failed ? (
+          <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="rounded-full bg-pinterest-red px-6 py-2.5 text-canvas-white text-body font-semibold">{t("common.retry")}</button>
+        ) : (
+          <button type="button" onClick={() => navigate(-1)} className="text-pinterest-red text-body font-medium">{t("nav.back")}</button>
+        )}
       </div>
     );
   }
 
-  const mapsUrl = monument.lat && monument.lng
+  const mapsUrl = monument.lat != null && monument.lng != null
     ? `https://www.google.com/maps/dir/?api=1&destination=${monument.lat},${monument.lng}`
     : null;
 
@@ -100,7 +98,9 @@ export function MonumentDetailPage() {
 
         {/* Botón volver */}
         <button
+          type="button"
           onClick={() => navigate(-1)}
+          aria-label={t("common.back")}
           className="absolute top-12 left-4 size-10 rounded-full bg-canvas-white shadow-md flex items-center justify-center"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -115,7 +115,7 @@ export function MonumentDetailPage() {
               <path d="M6 1C3.79 1 2 2.79 2 5c0 3.25 4 8 4 8s4-4.75 4-8c0-2.21-1.79-4-4-4z" stroke="#9E9E9E" strokeWidth="1.2" fill="none"/>
               <circle cx="6" cy="5" r="1.5" stroke="#9E9E9E" strokeWidth="1.2" fill="none"/>
             </svg>
-            <span className="text-[13px] font-semibold text-graphite">{formatDist(distanceM)}</span>
+            <span className="text-[13px] font-semibold text-graphite">{formatDistance(distanceM)}</span>
           </div>
         )}
       </div>
@@ -143,7 +143,7 @@ export function MonumentDetailPage() {
                   <path d="M5.5 1C3.015 1 1 3.015 1 5.5c0 3.375 4.5 7.5 4.5 7.5S10 8.875 10 5.5C10 3.015 7.985 1 5.5 1z" stroke="currentColor" strokeWidth="1.2" fill="none"/>
                   <circle cx="5.5" cy="5.5" r="1.5" stroke="currentColor" strokeWidth="1.2" fill="none"/>
                 </svg>
-                {formatDist(distanceM)}
+                {formatDistance(distanceM)}
               </span>
             </>
           )}
@@ -230,7 +230,7 @@ export function MonumentDetailPage() {
               <div className="flex-1">
                 <p className="text-body font-semibold text-jet-black">{t("monument.directions")}</p>
                 {distanceM !== null && (
-                  <p className="text-body-sm text-ash-gray">{t("monument.walking", { minutes: walkMinutes(distanceM), distance: formatDist(distanceM) })}</p>
+                  <p className="text-body-sm text-ash-gray">{t("monument.walking", { minutes: walkingMinutes(distanceM), distance: formatDistance(distanceM) })}</p>
                 )}
               </div>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -245,7 +245,7 @@ export function MonumentDetailPage() {
       <div className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-canvas-white/95 backdrop-blur">
         {distanceM !== null && distanceM > 500 && (
           <p className="text-center text-body-sm text-ash-gray mb-2">
-            {t("monument.far_hint", { distance: formatDist(distanceM) })}
+            {t("monument.far_hint", { distance: formatDistance(distanceM) })}
           </p>
         )}
         <button

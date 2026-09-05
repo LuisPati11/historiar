@@ -24,7 +24,7 @@ App de guía turística con realidad aumentada y gamificación social. Apuntas e
 
 ```
 web/                 PWA + base de la app nativa (Vite + React + MindAR + Capacitor)
-backend/supabase/    Schema SQL (5 migraciones) + edge functions + seed
+backend/supabase/    Migraciones SQL + pruebas pgTAP + Edge Functions + seed
 content-pipeline/    Generación de contenido con IA (Fase 3)
 docs/                Diseño y roadmap
 ```
@@ -41,22 +41,41 @@ docs/                Diseño y roadmap
 ```bash
 # Web
 cd web
+corepack enable
 pnpm install
 cp .env.example .env  # configurar URL y anon key de Supabase
+pnpm check
 pnpm dev
 
 # Capacitor (cuando se quiera generar app nativa)
-npx cap add ios
-npx cap add android
+pnpm exec cap add ios
+pnpm exec cap add android
 pnpm cap:ios       # abre Xcode
 pnpm cap:android   # abre Android Studio
 
 # Supabase
 brew install supabase/tap/supabase
-cd backend
+cd ../backend
 supabase link --project-ref <ref>
-supabase db push      # aplica migraciones 00001–00004
-psql $DATABASE_URL < supabase/seed.sql
+supabase db push      # aplica todas las migraciones pendientes
+supabase test db
+bash supabase/tests/edge_function_e2e.sh  # con Supabase local iniciado
+
+# Edge Function: formato, lint, tipos y pruebas unitarias
+cd supabase/functions/validate-visit
+deno task check
 ```
 
-Más detalle en `web/README.md` y `CLAUDE.md`.
+Requiere Node.js 22 o superior. Más detalle en `web/README.md` y en
+`docs/security.md`.
+
+Para ejecutar las pruebas de integración desde la raíz del repositorio:
+
+```bash
+cd backend
+supabase start -x studio,imgproxy,logflare,vector,supavisor
+supabase test db
+bash supabase/tests/edge_function_e2e.sh
+```
+
+Resultados y límites de la última revisión: [revisión del 5 de septiembre de 2026](docs/revision-2026-09-05.md).

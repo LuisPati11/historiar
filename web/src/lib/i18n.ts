@@ -29,13 +29,14 @@ i18n.on("languageChanged", (lng) => {
 i18n.on("initialized", () => {
   document.documentElement.lang = i18n.resolvedLanguage?.split("-")[0] || "es";
 });
+document.documentElement.lang = i18n.resolvedLanguage?.split("-")[0] || "es";
 
 export default i18n;
 
 export type Locale = "es" | "en";
 
-export function normalizeLocale(locale: string | null | undefined): Locale {
-  return locale?.startsWith("en") ? "en" : "es";
+export function normalizeLocale(locale: unknown): Locale {
+  return typeof locale === "string" && locale.toLowerCase().split(/[-_]/)[0] === "en" ? "en" : "es";
 }
 
 export function currentLocale(): Locale {

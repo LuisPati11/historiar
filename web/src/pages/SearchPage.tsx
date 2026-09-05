@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { searchProfiles, followUser, unfollowUser, type ProfileResult } from "../lib/supabase";
+import { searchProfiles, followUser, unfollowUser, type ProfileResult } from "../lib/api/social";
 import { AvatarImage } from "../components/AvatarPicker";
 import { BottomNav } from "../components/BottomNav";
 
@@ -12,23 +12,27 @@ export function SearchPage() {
   const [results, setResults] = useState<ProfileResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [followLoading, setFollowLoading] = useState<string | null>(null);
+  const [searchError, setSearchError] = useState(false);
+  const [followError, setFollowError] = useState(false);
 
   useEffect(() => {
     const value = query.trim();
     if (value.length < 2) {
       setResults([]);
       setSearching(false);
+      setSearchError(false);
       return;
     }
 
     let cancelled = false;
     const timer = window.setTimeout(async () => {
       setSearching(true);
+      setSearchError(false);
       try {
         const data = await searchProfiles(value);
         if (!cancelled) setResults(data);
-      } catch (err) {
-        if (!cancelled) console.error(err);
+      } catch {
+        if (!cancelled) setSearchError(true);
       } finally {
         if (!cancelled) setSearching(false);
       }
@@ -47,6 +51,7 @@ export function SearchPage() {
 
   const toggleFollow = async (profile: ProfileResult) => {
     setFollowLoading(profile.id);
+    setFollowError(false);
     try {
       if (profile.is_following) {
         await unfollowUser(profile.id);
@@ -56,8 +61,8 @@ export function SearchPage() {
       setResults((prev) =>
         prev.map((p) => p.id === profile.id ? { ...p, is_following: !p.is_following } : p)
       );
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setFollowError(true);
     } finally {
       setFollowLoading(null);
     }
@@ -75,6 +80,7 @@ export function SearchPage() {
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ash-gray">🔍</span>
           <input
             type="search"
+            aria-label={t("search.placeholder")}
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
             placeholder={t("search.placeholder")}
@@ -82,6 +88,12 @@ export function SearchPage() {
           />
         </div>
       </div>
+
+      {(searchError || followError) && (
+        <p role="alert" className="px-6 pb-3 text-body-sm text-red-600">
+          {searchError ? t("common.connection_error") : t("common.action_error")}
+        </p>
+      )}
 
       {/* Estado vacío inicial */}
       {!query && (
@@ -99,7 +111,7 @@ export function SearchPage() {
       )}
 
       {/* Sin resultados */}
-      {!searching && query.length >= 2 && results.length === 0 && (
+      {!searching && !searchError && query.trim().length >= 2 && results.length === 0 && (
         <p className="px-6 text-center text-body text-ash-gray pt-8">{t("search.no_results")}</p>
       )}
 

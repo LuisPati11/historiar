@@ -3,17 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Map, { Marker, NavigationControl } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { Monument } from "../lib/supabase";
+import type { Monument } from "../lib/api/monuments";
+import { formatDistance } from "../lib/format";
+import { walkingMinutes } from "../lib/geo";
 
 interface Props {
   monuments: Array<Monument & { distance_m?: number }>;
   userLat: number | null;
   userLng: number | null;
-}
-
-function formatDistance(m: number) {
-  if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
-  return `${Math.round(m)} m`;
 }
 
 function BuildingIcon({ color = "#1A1A1A" }: { color?: string }) {
@@ -96,7 +93,7 @@ export function MonumentsMap({ monuments, userLat, userLng }: Props) {
         style={{ width: "100%", height: "100%" }}
         mapStyle={`https://api.maptiler.com/maps/019e112b-e6a2-70b0-b98e-a3582b0ab594/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`}
         onLoad={() => { setLoaded(true); setTimedOut(false); }}
-        onError={() => {}}
+        onError={() => setTimedOut(true)}
         attributionControl={false}
         reuseMaps
         onClick={() => setSelected(null)}
@@ -104,14 +101,14 @@ export function MonumentsMap({ monuments, userLat, userLng }: Props) {
         <NavigationControl position="bottom-right" showCompass={false} />
 
         {/* Posición del usuario */}
-        {userLat && userLng && (
+        {userLat != null && userLng != null && (
           <Marker longitude={userLng} latitude={userLat} anchor="center">
             <div className="size-4 rounded-full bg-pinterest-red border-2 border-white shadow-md" />
           </Marker>
         )}
 
         {/* Monumentos */}
-        {monuments.filter((m) => m.lat && m.lng).map((m) => {
+        {monuments.filter((m) => m.lat != null && m.lng != null).map((m) => {
           const isSelected = selected?.id === m.id;
           return (
             <Marker
@@ -159,7 +156,7 @@ export function MonumentsMap({ monuments, userLat, userLng }: Props) {
               <p className="text-body font-bold text-jet-black truncate leading-snug">{selected.name}</p>
               {selected.distance_m != null && (
                 <p className="text-body-sm text-ash-gray mt-0.5">
-                  🚶 {Math.round(selected.distance_m / 80)} min · {formatDistance(selected.distance_m)}
+                  🚶 {walkingMinutes(selected.distance_m)} min · {formatDistance(selected.distance_m)}
                 </p>
               )}
               <div className="flex gap-2 mt-2.5">

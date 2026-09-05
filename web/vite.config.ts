@@ -61,11 +61,16 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /\.(mp4|m4a|mp3|webm)$/,
+            urlPattern: /\.mind$/,
             handler: "CacheFirst",
             options: {
-              cacheName: "media-cache",
-              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheName: "mindar-targets",
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 7,
+                purgeOnQuotaError: true,
+              },
+              cacheableResponse: { statuses: [0, 200] },
             },
           },
         ],
@@ -75,10 +80,14 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          "vendor-react": ["react", "react-dom", "react-router-dom"],
-          "vendor-i18n":  ["i18next", "react-i18next"],
-          "vendor-supabase": ["@supabase/supabase-js"],
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (id.includes("i18next")) return "vendor-i18n";
+          if (id.includes("@supabase")) return "vendor-supabase";
+          if (id.includes("react-dom") || id.includes("react-router") || /node_modules\/(?:\.pnpm\/[^/]+\/node_modules\/)?react\//.test(id)) {
+            return "vendor-react";
+          }
+          return undefined;
         },
       },
     },

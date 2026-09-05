@@ -9,10 +9,12 @@ Cliente único: **PWA (web) + app nativa iOS/Android vía Capacitor**, misma bas
 - **Tailwind CSS** — UI.
 - **i18next** + `react-i18next` — i18n (es + en).
 - **Supabase JS** — auth, datos, RPCs PostGIS, edge functions.
-- **vite-plugin-pwa** — instalabilidad PWA + caché offline de vídeos/audios.
+- **vite-plugin-pwa** — instalabilidad PWA y caché del shell y targets `.mind`.
 - **Capacitor** — wrapper nativo para iOS y Android (icono home, push notifications, App Store).
 
 ## Setup
+
+Requisitos: Node.js 22 o posterior y pnpm 11. El proyecto retiene durante 24 horas las versiones recién publicadas y sólo permite ejecutar el script de instalación de `esbuild`.
 
 ```bash
 cd web
@@ -35,11 +37,9 @@ Una vez con HTTPS, abre la URL en Safari del iPhone, da permiso a cámara y ubic
 
 MindAR no usa la imagen JPG directamente: hay que compilarla a un formato `.mind` propietario:
 
-```bash
-npx mindar-image-cli@latest compile -i puerta-toledo-ref.jpg -o puerta-toledo.mind
-```
+Usa el [compilador oficial online de MindAR](https://hiukim.github.io/mind-ar-js-doc/tools/compile). El paquete npm `mindar-image-cli` no existe como CLI publicable; compilar localmente exige construir el repositorio de MindAR y sus dependencias nativas.
 
-El `.mind` resultante se sube a **Supabase Storage** y la URL se guarda en `monuments.reference_image_url`.
+El `.mind` resultante se sube al bucket `mind-targets` de **Supabase Storage** y la URL se guarda en `monuments.mind_target_url`. `reference_image_url` se reserva para la imagen JPG/WEBP del bucket `monument-images` que se muestra en la interfaz. Vídeo y audio usan `monument-video` y `monument-audio`; sus límites y MIME están versionados por migración.
 
 Tip: una sola imagen frontal en buena luz suele bastar para empezar. Si el tracking falla en condiciones reales, compilar varias imágenes en el mismo `.mind` (varios ángulos, distintas horas).
 
@@ -54,7 +54,9 @@ src/
 ├── ar/
 │   └── mindar.ts      Wrapper de MindAR + Three.js
 ├── lib/
-│   └── supabase.ts    Cliente Supabase + helpers
+│   ├── supabase.ts    Fachada pública del acceso a datos
+│   ├── supabaseClient.ts
+│   └── api/           Monumentos, visitas, perfil, social y logros
 └── index.css          Tailwind
 ```
 
@@ -62,10 +64,12 @@ src/
 
 Capacitor envuelve esta misma PWA en una app iOS y Android nativa. La PWA sigue funcionando en web — son dos canales de distribución de la misma base de código.
 
+Capacitor 8 requiere Node.js 22+, iOS 15+/Xcode 26 y Android SDK 36. Verifica el entorno con `pnpm exec cap doctor` antes de añadir o sincronizar plataformas.
+
 ```bash
 # Una sola vez, tras pnpm install
-npx cap add ios
-npx cap add android
+pnpm exec cap add ios
+pnpm exec cap add android
 
 # Ciclo de desarrollo
 pnpm cap:sync          # build + sync
@@ -78,10 +82,12 @@ Apple Developer Program ($99/año) solo es necesario para subir a TestFlight / A
 ## Próximos pasos
 
 1. `pnpm install` para resolver dependencias.
-2. Crear proyecto Supabase y copiar URL + anon key a `.env`.
+2. Crear proyecto Supabase y copiar URL + publishable/anon key a `.env`. Verificar que el hostname resuelve antes del despliegue.
 3. Aplicar migraciones del directorio `../backend/supabase/migrations/`.
 4. Compilar imagen de referencia de la Puerta de Toledo a `.mind` y subir a Storage.
-5. Subir un vídeo de prueba (incluso un MP4 cualquiera) y un audio a Storage.
+5. Subir un vídeo de prueba a `monument-video` y un audio a `monument-audio`.
 6. Actualizar `monuments` en BBDD con las URLs de Storage.
 7. `pnpm dev` + ngrok + abrir en iPhone físicamente cerca de la Puerta de Toledo.
-8. (Después) `npx cap add ios` + Xcode para empaquetar la app nativa.
+8. (Después) `pnpm exec cap add ios` + Xcode para empaquetar la app nativa.
+
+Antes de publicar, completa la lista de [seguridad y despliegue](../docs/security.md).

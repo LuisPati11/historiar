@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getCollectionsProgress, type CollectionProgress, type EarnedMedal } from "../lib/supabase";
+import { getCollectionsProgress, type CollectionProgress, type EarnedMedal } from "../lib/api/achievements";
+import { useModalAccessibility } from "../hooks/useModalAccessibility";
 
 const TIER_CONFIG: Record<string, { labelKey: string; accent: string; soft: string; glow: string }> = {
   bronze: {
@@ -70,6 +71,7 @@ export function MedalCelebration({ medals, onClose }: Props) {
   const [collections, setCollections] = useState<CollectionProgress[]>([]);
   const [imageReady, setImageReady] = useState(false);
   const chimePlayed = useRef(false);
+  const closeRef = useModalAccessibility(onClose);
 
   useEffect(() => {
     let cancelled = false;
@@ -120,7 +122,7 @@ export function MedalCelebration({ medals, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-jet-black text-graphite">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-jet-black text-graphite" role="dialog" aria-modal="true" aria-labelledby="medal-celebration-title">
       <style>{`
         @keyframes medal-confetti-fall {
           0% { transform: translate3d(0, -18vh, 0) rotate(0deg); opacity: 0; }
@@ -168,6 +170,7 @@ export function MedalCelebration({ medals, onClose }: Props) {
         ))}
 
         <button
+          ref={closeRef}
           type="button"
           onClick={onClose}
           aria-label={t("common.close")}
@@ -179,7 +182,7 @@ export function MedalCelebration({ medals, onClose }: Props) {
         <div className="relative flex h-full flex-col items-center overflow-hidden px-6 pb-[max(18px,env(safe-area-inset-bottom))] pt-[clamp(56px,8vh,84px)] text-center">
           <div className="mb-[clamp(16px,2.4vh,28px)] flex flex-col items-center" style={{ animation: imageReady ? "medal-reveal 520ms cubic-bezier(0.2, 0.85, 0.2, 1) both" : "none", opacity: imageReady ? undefined : 0 }}>
             <span className="mb-2 text-2xl font-black text-pinterest-red">✦</span>
-            <h2 className="text-[clamp(1.65rem,4.4vh,2rem)] font-medium leading-none text-graphite">{t("medal.celebration_title")}</h2>
+            <h2 id="medal-celebration-title" className="text-[clamp(1.65rem,4.4vh,2rem)] font-medium leading-none text-graphite">{t("medal.celebration_title")}</h2>
             <p className="mt-2 text-[clamp(1rem,2.7vh,1.25rem)] font-medium text-ash-gray">{t("medal.celebration_subtitle")}</p>
           </div>
 
@@ -191,13 +194,20 @@ export function MedalCelebration({ medals, onClose }: Props) {
               opacity: imageReady ? undefined : 0,
             }}
           >
-            <div className="relative h-[clamp(176px,27vh,250px)] w-[clamp(176px,27vh,250px)] overflow-hidden rounded-full bg-[#c98a2f] p-2">
+            <div
+              className="relative overflow-hidden rounded-full bg-[#c98a2f] p-2"
+              style={{
+                height: "clamp(176px,27vh,250px)",
+                width: "clamp(176px,27vh,250px)",
+                WebkitMaskImage: "-webkit-radial-gradient(white, black)",
+              }}
+            >
               {medal.image_url ? (
                 <img
                   src={medal.image_url}
                   alt={medal.name}
-                  className="h-full w-full rounded-full object-cover"
-                  style={{ transform: "scale(1.18)", transformOrigin: "50% 43%" }}
+                  className="h-full w-full object-cover"
+                  style={{ borderRadius: "50%", transform: "scale(1.18)", transformOrigin: "50% 43%" }}
                   onLoad={() => setImageReady(true)}
                 />
               ) : (

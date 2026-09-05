@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/authContext";
 import {
-  getPublicProfile, getPublicUserMedals, getPublicUserVisitCount,
+  getPublicProfile, getPublicUserVisitCount,
+} from "../lib/api/profile";
+import { getPublicUserMedals, type UserMedal } from "../lib/api/achievements";
+import {
   getFollowers, getFollowing, isFollowing, followUser, unfollowUser,
-  type UserMedal, type FollowUser,
-} from "../lib/supabase";
+  type FollowUser,
+} from "../lib/api/social";
 import { AvatarImage } from "../components/AvatarPicker";
 import { FollowListModal } from "../components/FollowListModal";
 import { TIER_CONFIG } from "../lib/tierConfig";
@@ -29,10 +32,14 @@ export function UserProfilePage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [followError, setFollowError] = useState(false);
   const [showList, setShowList] = useState<"followers" | "following" | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!userId) return;
+    let cancelled = false;
+    setLoading(true);
     setLoadError(false);
     Promise.all([
       getPublicProfile(userId),
@@ -42,24 +49,29 @@ export function UserProfilePage() {
       getFollowing(userId),
       isFollowing(userId),
     ]).then(([p, m, v, frs, fng, iF]) => {
+      if (cancelled) return;
       setProfile(p); setMedals(m); setVisitCount(v);
       setFollowers(frs); setFollowing(fng); setAmFollowing(iF);
-    }).catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
-  }, [userId]);
+    }).catch(() => { if (!cancelled) setLoadError(true); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [userId, user?.id, reloadKey, t]);
 
   const handleFollow = async () => {
     if (!userId) return;
     setFollowLoading(true);
+    setFollowError(false);
     try {
       if (amFollowing) {
         await unfollowUser(userId);
         setAmFollowing(false);
-        setFollowers(f => f.filter(u => u.id !== user?.id));
       } else {
         await followUser(userId);
         setAmFollowing(true);
       }
+      setFollowers(await getFollowers(userId));
+    } catch {
+      setFollowError(true);
     } finally {
       setFollowLoading(false);
     }
@@ -98,7 +110,7 @@ export function UserProfilePage() {
         <p className="text-4xl">📡</p>
         <p className="text-subheading font-semibold text-graphite">{t("user_profile.load_error_title")}</p>
         <p className="text-body-sm text-ash-gray">{t("common.connection_error")}</p>
-        <button onClick={() => navigate(-1)} className="mt-2 text-body-sm text-pinterest-red font-medium">← {t("nav.back")}</button>
+        <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-2 rounded-full bg-pinterest-red px-5 py-2.5 text-body-sm font-semibold text-canvas-white">{t("common.retry")}</button>
       </main>
     );
   }
@@ -135,6 +147,7 @@ export function UserProfilePage() {
           </button>
         )}
       </div>
+      {followError && <p role="alert" className="-mt-3 mb-5 text-body-sm text-red-600">{t("common.action_error")}</p>}
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 mb-3">
@@ -179,7 +192,7 @@ export function UserProfilePage() {
                   )}
                 </div>
                 <span className={`rounded-full px-2.5 py-0.5 text-body-sm font-medium shrink-0 ${tier?.colors ?? "bg-whisper-gray text-graphite"}`}>
-                  {tier?.label ?? "—"}
+                  {tier ? t(tier.labelKey) : "—"}
                 </span>
               </li>
             );

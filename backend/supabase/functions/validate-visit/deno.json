@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.114.0"
+  },
+  "tasks": {
+    "check": "deno fmt --check && deno lint && deno check index.ts && deno test"
+  }
+}

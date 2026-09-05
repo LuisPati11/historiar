@@ -300,7 +300,7 @@ En ProfilePage, el avatar XL lleva:
 
 ## 9. Imágenes de Monumentos
 
-Almacenadas en Supabase Storage (`monument-images/`). URL pública: `https://qvevpackpwpjqgsapqws.supabase.co/storage/v1/object/public/monument-images/{slug}.jpg`
+Almacenadas en Supabase Storage (`monument-images/`). URL pública: `https://<project-ref>.supabase.co/storage/v1/object/public/monument-images/{slug}.jpg`
 
 - Compresión: JPEG 82%, resolución máxima 1200px
 - En lista: `w-36` fijo, `h-[148px]` fijo, `object-cover`

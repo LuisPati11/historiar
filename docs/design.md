@@ -18,8 +18,8 @@ Implicaciones:
 
 ### Implementación en WebAR (MindAR + Three.js)
 
-- **Image tracking** vía MindAR: la foto de referencia se compila a `.mind` con `mindar-image-cli` y se sube a Supabase Storage.
-- Al detectar la imagen, un `Mesh` con `PlaneGeometry` (16:9) y `VideoTexture` reproduce el vídeo anclado al `anchor` de MindAR.
+- **Image tracking** vía MindAR: la foto de referencia se compila a `.mind` con el compilador oficial online y se sube a Supabase Storage. No existe un paquete npm `mindar-image-cli` publicable.
+- Diseño previsto: al detectar la imagen, un `Mesh` con `PlaneGeometry` (16:9) y `VideoTexture` reproduce el vídeo anclado al `anchor` de MindAR. El código actual usa el tracking para reconocer el monumento y reproduce después un overlay de vídeo desde React; el plano anclado todavía no está implementado.
 - Audio: `<audio>` HTML5 sincronizado con `play/pause` del vídeo. En iOS Safari el primer `play()` debe ocurrir tras un gesto del usuario o con `muted=true`.
 - Hosting con HTTPS obligatorio (Safari iOS exige HTTPS para `getUserMedia`).
 
@@ -27,9 +27,11 @@ Implicaciones:
 
 Doble verificación:
 1. **GPS**: usuario está dentro de `RADIUS_METERS = 75` del monumento (ajustable por monumento si hace falta).
-2. **Image tracking**: la cámara ha reconocido la fachada (no vale poner una foto en la pantalla).
+2. **Image tracking**: la cámara ha reconocido el target visual de la fachada.
 
 Ambas se validan **server-side** en la edge function `validate-visit` antes de marcar `verified_geo` y `verified_image`. El trigger SQL `grant_eligible_medals` otorga medallas solo cuando ambas son `true` para todos los monumentos requeridos.
+
+Límite de seguridad: en una PWA, el servidor puede verificar el reto de corta duración, el GPS y que el cliente notificó un evento real de MindAR, pero no puede demostrar criptográficamente que la cámara apuntaba al edificio en vez de a una reproducción de la imagen. El flujo limita replay y automatización, pero una garantía física más fuerte requeriría attestation nativa y/o una prueba visual dinámica diseñada para ello.
 
 ## UX
 
@@ -74,7 +76,7 @@ Pipeline:
 ## Decisiones pendientes
 
 - Nombre comercial de la app.
-- Hosting de la PWA: Vercel vs Netlify vs Cloudflare Pages (las tres gratis para hobby).
+- Hosting de la PWA: Vercel. Los ficheros de Netlify se conservan únicamente para el despliegue provisional existente.
 - Cómo manejar monumentos en interiores (museos) — image tracking funciona, pero GPS es poco fiable. Dejado para fase posterior.
 - Pasarela de pago para medallas premium en PWA: Stripe Checkout (más simple que IAPs nativos, sin comisión Apple del 30%).
 - Si en algún momento el producto necesita push notifications iOS más potentes o features nativas, evaluar migración a app nativa con WebView + bridge a Supabase (Capacitor) en lugar de reescribir.

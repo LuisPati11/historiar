@@ -34,11 +34,35 @@ export async function startMindAR(args: StartMindARArgs): Promise<() => Promise<
   anchor.onTargetFound = () => args.onTargetFound?.();
   anchor.onTargetLost = () => args.onTargetLost?.();
 
-  await mindar.start();
-  renderer.setAnimationLoop(() => renderer.render(scene, camera));
-
-  return async () => {
+  let disposed = false;
+  const cleanup = async () => {
+    if (disposed) return;
+    disposed = true;
+    anchor.onTargetFound = undefined;
+    anchor.onTargetLost = undefined;
     renderer.setAnimationLoop(null);
-    await mindar.stop();
+    try {
+      await mindar.stop();
+    } catch {
+      // MindAR.stop() assumes its controller exists, even after a failed start.
+    } finally {
+      for (const video of args.container.querySelectorAll("video")) {
+        const stream = video.srcObject as MediaStream | null;
+        stream?.getTracks().forEach((track) => track.stop());
+        video.srcObject = null;
+      }
+      renderer.dispose();
+      args.container.replaceChildren();
+    }
   };
+
+  try {
+    await mindar.start();
+    renderer.setAnimationLoop(() => renderer.render(scene, camera));
+  } catch (error) {
+    await cleanup();
+    throw error;
+  }
+
+  return cleanup;
 }

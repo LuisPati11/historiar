@@ -1,0 +1,10 @@
+minimumReleaseAge: 1440
+overrides:
+  # MindAR solo usa canvas en sus herramientas Node de compilación, no en el runtime web.
+  "mind-ar@1.2.5>canvas": "-"
+allowBuilds:
+  core-js: false
+  esbuild: true
+peerDependencyRules:
+  allowedVersions:
+    "@vitejs/plugin-basic-ssl>vite": "8"

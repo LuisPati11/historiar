@@ -1,35 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-
-const STORAGE_KEY = "gyro_permission";
-const GYRO_PERMISSION_EVENT = "gyro-permission-change";
+import {
+  getOrientationPermissionRequest,
+  getStoredGyroPermission,
+  storeGyroPermission,
+} from "../lib/deviceOrientation";
 
 export function GyroPermissionBanner() {
   const { t } = useTranslation();
-  const [show, setShow] = useState(false);
-
-  useEffect(() => {
-    const isIOS = typeof (DeviceOrientationEvent as any).requestPermission === "function";
-    const alreadyAnswered = localStorage.getItem(STORAGE_KEY);
-    if (isIOS && !alreadyAnswered) setShow(true);
-  }, []);
+  const [show, setShow] = useState(
+    () => getOrientationPermissionRequest() !== null && !getStoredGyroPermission(),
+  );
 
   if (!show) return null;
 
   const handleActivate = async () => {
     try {
-      const res = await (DeviceOrientationEvent as any).requestPermission();
-      localStorage.setItem(STORAGE_KEY, res === "granted" ? "granted" : "denied");
+      const requestPermission = getOrientationPermissionRequest();
+      const res = requestPermission ? await requestPermission() : "denied";
+      storeGyroPermission(res === "granted" ? "granted" : "denied");
     } catch {
-      localStorage.setItem(STORAGE_KEY, "denied");
+      storeGyroPermission("denied");
     }
-    window.dispatchEvent(new Event(GYRO_PERMISSION_EVENT));
     setShow(false);
   };
 
   const handleDismiss = () => {
-    localStorage.setItem(STORAGE_KEY, "denied");
-    window.dispatchEvent(new Event(GYRO_PERMISSION_EVENT));
+    storeGyroPermission("denied");
     setShow(false);
   };
 

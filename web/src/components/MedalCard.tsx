@@ -1,5 +1,12 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  getOrientationPermissionRequest,
+  getStoredGyroPermission,
+  GYRO_PERMISSION_EVENT,
+  storeGyroPermission,
+} from "../lib/deviceOrientation";
+import { useModalAccessibility } from "../hooks/useModalAccessibility";
 
 interface Props {
   imageUrl: string;
@@ -18,38 +25,63 @@ const TIER_GLOW: Record<string, string> = {
   diamond:"rgba(100,180,255,0.7)",
 };
 
-const GYRO_PERMISSION_KEY = "gyro_permission";
-const GYRO_PERMISSION_EVENT = "gyro-permission-change";
-
 export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 260, hideInfo = false }: Props) {
   const { t, i18n } = useTranslation();
   const cardRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const sweepRef = useRef<HTMLDivElement>(null);
+  const glareRef = useRef<HTMLDivElement>(null);
+  const rimRef = useRef<HTMLDivElement>(null);
   const rafRef  = useRef<number>(0);
   const gyroCleanupRef = useRef<(() => void) | null>(null);
   const target  = useRef({ rx: 0, ry: 0 });
   const current = useRef({ rx: 0, ry: 0 });
   const isDragging = useRef(false);
 
-  const [rx, setRx] = useState(0);
-  const [ry, setRy] = useState(0);
   const [gyroEnabled, setGyroEnabled] = useState(false);
-  const [gyroPermission, setGyroPermission] = useState(() =>
-    typeof window === "undefined" ? null : localStorage.getItem(GYRO_PERMISSION_KEY),
-  );
+  const [gyroPermission, setGyroPermission] = useState(getStoredGyroPermission);
+  const glowColor = TIER_GLOW[tier] ?? TIER_GLOW.gold;
 
-  const tick = useCallback(() => {
+  const renderFrame = useCallback(() => {
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
     current.current.rx = lerp(current.current.rx, target.current.rx, 0.08);
     current.current.ry = lerp(current.current.ry, target.current.ry, 0.08);
-    setRx(current.current.rx);
-    setRy(current.current.ry);
-    rafRef.current = requestAnimationFrame(tick);
-  }, []);
+    const { rx, ry } = current.current;
+    const intensity = Math.min(1, Math.hypot(rx, ry) / 14);
+
+    if (cardRef.current) cardRef.current.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+    if (wrapperRef.current) {
+      wrapperRef.current.style.filter = `drop-shadow(0 ${4 + intensity * 3}px ${8 + intensity * 4}px rgba(0,0,0,0.22)) drop-shadow(0 0 ${3 + intensity * 8}px ${glowColor})`;
+    }
+    if (sweepRef.current) {
+      sweepRef.current.style.background = `linear-gradient(${130 + ry * 2 + rx}deg,
+        rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.03) 28%,
+        rgba(255,210,60,${0.09 + intensity * 0.13}) 50%,
+        rgba(0,0,0,0.03) 72%, rgba(0,0,0,0.10) 100%)`;
+    }
+    if (glareRef.current) {
+      glareRef.current.style.background = `radial-gradient(ellipse 30% 20% at ${50 + ry * 3}% ${50 - rx * 3}%,
+        rgba(255,255,230,${0.55 + intensity * 0.32}) 0%,
+        rgba(255,218,90,${0.22 + intensity * 0.18}) 42%, transparent 72%)`;
+    }
+    if (rimRef.current) {
+      rimRef.current.style.boxShadow = [
+        `inset ${-ry * 0.9}px ${rx * 0.9}px ${3 + intensity * 8}px rgba(255,210,60,${0.4 + intensity * 0.45})`,
+        `inset ${ry * 0.45}px ${-rx * 0.45}px ${5 + intensity * 9}px rgba(0,0,0,${0.25 + intensity * 0.3})`,
+      ].join(", ");
+    }
+
+    const moving = Math.abs(target.current.rx - rx) > 0.01 || Math.abs(target.current.ry - ry) > 0.01;
+    rafRef.current = moving ? requestAnimationFrame(renderFrame) : 0;
+  }, [glowColor]);
+
+  const requestRender = useCallback(() => {
+    if (!rafRef.current) rafRef.current = requestAnimationFrame(renderFrame);
+  }, [renderFrame]);
 
   useEffect(() => {
-    rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [tick]);
+  }, []);
 
   const attachGyro = useCallback(() => {
     if (gyroCleanupRef.current) return;
@@ -59,19 +91,19 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
       const beta  = Math.max(-30, Math.min(30, (e.beta ?? 45) - 45));
       target.current.ry = gamma * 0.47;
       target.current.rx = beta  * 0.38;
+      requestRender();
     };
-    window.addEventListener("deviceorientation", handler);
+    window.addEventListener("deviceorientation", handler, { passive: true });
     gyroCleanupRef.current = () => {
       window.removeEventListener("deviceorientation", handler);
       gyroCleanupRef.current = null;
-      setGyroEnabled(false);
     };
     setGyroEnabled(true);
-  }, []);
+  }, [requestRender]);
 
   useEffect(() => {
     if (typeof DeviceOrientationEvent === "undefined") return;
-    const isIOS = typeof (DeviceOrientationEvent as any).requestPermission === "function";
+    const isIOS = getOrientationPermissionRequest() !== null;
     if (isIOS) {
       if (gyroPermission === "granted") attachGyro();
     } else {
@@ -81,7 +113,7 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
 
   useEffect(() => {
     const syncGyroPermission = () => {
-      setGyroPermission(localStorage.getItem(GYRO_PERMISSION_KEY));
+      setGyroPermission(getStoredGyroPermission());
     };
     window.addEventListener(GYRO_PERMISSION_EVENT, syncGyroPermission);
     window.addEventListener("storage", syncGyroPermission);
@@ -94,17 +126,17 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
 
   const requestGyroFromGesture = async () => {
     if (typeof DeviceOrientationEvent === "undefined") return;
-    if (typeof (DeviceOrientationEvent as any).requestPermission !== "function") return;
+    const requestPermission = getOrientationPermissionRequest();
+    if (!requestPermission) return;
     // Siempre llamar requestPermission() en iOS — en nueva sesión es necesario
     // aunque localStorage ya diga "granted", porque Safari requiere la llamada
     // por gesto de usuario para que los eventos deviceorientation empiecen a disparar.
     try {
-      const res = await (DeviceOrientationEvent as any).requestPermission();
-      localStorage.setItem(GYRO_PERMISSION_KEY, res === "granted" ? "granted" : "denied");
+      const res = await requestPermission();
+      storeGyroPermission(res === "granted" ? "granted" : "denied");
     } catch {
-      localStorage.setItem(GYRO_PERMISSION_KEY, "denied");
+      storeGyroPermission("denied");
     }
-    window.dispatchEvent(new Event(GYRO_PERMISSION_EVENT));
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -115,21 +147,17 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
     const dy = (e.clientY - (rect.top  + rect.height / 2)) / (rect.height / 2);
     target.current.ry =  dx * 14;
     target.current.rx = -dy * 14;
+    requestRender();
   };
 
-  const handlePointerLeave = () => {
+  const stopDragging = () => {
     isDragging.current = false;
     if (!gyroEnabled) {
       target.current.rx = 0;
       target.current.ry = 0;
+      requestRender();
     }
   };
-
-  const intensity  = Math.min(1, Math.sqrt(rx * rx + ry * ry) / 14);
-  const glareX     = 50 + ry * 3;
-  const glareY     = 50 - rx * 3;
-  const sweepAngle = 130 + ry * 2 + rx * 1;
-  const glowColor  = TIER_GLOW[tier] ?? TIER_GLOW.gold;
 
   return (
     <div className="flex flex-col items-center gap-5 select-none">
@@ -144,9 +172,9 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
       */}
       {/* filter en el wrapper (no en el clip-path) → iOS Safari sigue los píxeles
           visibles de la moneda y crea sombra circular correcta */}
-      <div style={{
+      <div ref={wrapperRef} style={{
         position: "relative", width: size, height: size,
-        filter: `drop-shadow(0 ${4 + intensity * 3}px ${8 + intensity * 4}px rgba(0,0,0,0.22)) drop-shadow(0 0 ${3 + intensity * 8}px ${glowColor})`,
+        filter: `drop-shadow(0 4px 8px rgba(0,0,0,0.22)) drop-shadow(0 0 3px ${glowColor})`,
       }}>
 
         {/* Perspectiva → coin rotada y clipada */}
@@ -154,7 +182,9 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
           <div
             ref={cardRef}
             onPointerMove={handlePointerMove}
-            onPointerLeave={handlePointerLeave}
+            onPointerLeave={stopDragging}
+            onPointerUp={stopDragging}
+            onPointerCancel={stopDragging}
             onPointerDown={(e) => {
               e.currentTarget.setPointerCapture(e.pointerId);
               void requestGyroFromGesture();
@@ -162,7 +192,7 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
             style={{
               width:  "100%",
               height: "100%",
-              transform: `rotateX(${rx}deg) rotateY(${ry}deg)`,
+              transform: "rotateX(0deg) rotateY(0deg)",
               cursor: "grab",
               position: "relative",
               userSelect: "none",
@@ -190,12 +220,13 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
 
             {/* Barrido metálico direccional (sin blend mode) */}
             <div
+              ref={sweepRef}
               style={{
                 position: "absolute", inset: 0,
-                background: `linear-gradient(${sweepAngle}deg,
+                background: `linear-gradient(130deg,
                   rgba(0,0,0,0.12) 0%,
                   rgba(0,0,0,0.03) 28%,
-                  rgba(255,210,60,${0.09 + intensity * 0.13}) 50%,
+                  rgba(255,210,60,0.09) 50%,
                   rgba(0,0,0,0.03) 72%,
                   rgba(0,0,0,0.10) 100%
                 )`,
@@ -205,11 +236,12 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
 
             {/* Glare especular concentrado (sin blend mode) */}
             <div
+              ref={glareRef}
               style={{
                 position: "absolute", inset: 0,
-                background: `radial-gradient(ellipse 30% 20% at ${glareX}% ${glareY}%,
-                  rgba(255,255,230,${0.55 + intensity * 0.32}) 0%,
-                  rgba(255,218,90,${0.22 + intensity * 0.18}) 42%,
+                background: `radial-gradient(ellipse 30% 20% at 50% 50%,
+                  rgba(255,255,230,0.55) 0%,
+                  rgba(255,218,90,0.22) 42%,
                   transparent 72%
                 )`,
                 pointerEvents: "none",
@@ -218,11 +250,12 @@ export function MedalCard({ imageUrl, name, description, tier, earnedAt, size = 
 
             {/* Rim light (inset box-shadow) — ilusión de canto metálico */}
             <div
+              ref={rimRef}
               style={{
                 position: "absolute", inset: 0,
                 boxShadow: [
-                  `inset ${-ry * 0.9}px ${rx * 0.9}px ${3 + intensity * 8}px rgba(255,210,60,${0.4 + intensity * 0.45})`,
-                  `inset ${ry * 0.45}px ${-rx * 0.45}px ${5 + intensity * 9}px rgba(0,0,0,${0.25 + intensity * 0.3})`,
+                  "inset 0 0 3px rgba(255,210,60,0.4)",
+                  "inset 0 0 5px rgba(0,0,0,0.25)",
                 ].join(", "),
                 pointerEvents: "none",
               }}
@@ -270,13 +303,14 @@ export function MedalModal({
   backgroundUrl, location, collectionName, collectionProgress, collectionTotal,
 }: ModalProps) {
   const { t, i18n } = useTranslation();
+  const closeRef = useModalAccessibility(onClose);
   const progressPct = collectionTotal ? ((collectionProgress ?? 0) / collectionTotal) * 100 : 0;
   const earnedFormatted = earnedAt
     ? new Date(earnedAt).toLocaleDateString(i18n.language, { day: "numeric", month: "long", year: "numeric" })
     : null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden">
+    <div className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden" role="dialog" aria-modal="true" aria-labelledby="medal-modal-title">
       {/* Fondo: foto del monumento muy difuminada y muy brillante → efecto crema cálida */}
       <div
         className="fixed inset-0"
@@ -297,6 +331,8 @@ export function MedalModal({
 
         {/* Botón cerrar */}
         <button
+          ref={closeRef}
+          type="button"
           onClick={onClose}
           className="absolute top-4 right-4 size-8 flex items-center justify-center"
           aria-label={t("common.close")}
@@ -315,7 +351,7 @@ export function MedalModal({
         <div className="w-7 h-[3px] rounded-full bg-pinterest-red mb-5 mt-1" />
 
         {/* Nombre */}
-        <h1 className="text-[1.75rem] font-black text-jet-black text-center leading-tight mb-1 px-2">{name}</h1>
+        <h1 id="medal-modal-title" className="text-[1.75rem] font-black text-jet-black text-center leading-tight mb-1 px-2">{name}</h1>
 
         {/* Ubicación */}
         {location && <p className="text-body text-ash-gray mb-4">{location}</p>}
@@ -389,77 +425,6 @@ export function MedalModal({
           className="w-full rounded-full bg-pinterest-red text-canvas-white py-4 text-body font-semibold active:scale-[0.98] transition-transform shadow-sm"
         >
           {t("nav.back")}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-
-// ─── Celebración al ganar una medalla ──────────────────────────────────────────
-
-interface CelebrationProps {
-  imageUrl: string;
-  name: string;
-  description?: string | null;
-  tier: string;
-  earnedAt?: string | null;
-  onClose: () => void;
-}
-
-const PARTICLE_COUNT = 18;
-
-export function MedalCelebration({ imageUrl, name, description, tier, earnedAt, onClose }: CelebrationProps) {
-  const { t } = useTranslation();
-  const particles = useMemo(
-    () => Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      delay: Math.random() * 2,
-      duration: 1.5 + Math.random() * 2,
-      opacity: 0.4 + Math.random() * 0.6,
-    })),
-    [],
-  );
-
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-jet-black/90 backdrop-blur-lg px-6">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {particles.map((p) => (
-          <div
-            key={p.id}
-            className="absolute size-1 rounded-full bg-amber-400 animate-ping"
-            style={{
-              left: `${p.left}%`,
-              top:  `${p.top}%`,
-              animationDelay: `${p.delay}s`,
-              animationDuration: `${p.duration}s`,
-              opacity: p.opacity,
-            }}
-          />
-        ))}
-      </div>
-
-      <div className="relative flex flex-col items-center gap-4 w-full max-w-xs">
-        <div className="rounded-full bg-amber-500/20 border border-amber-400/40 px-4 py-1.5 mb-2">
-          <p className="text-body-sm font-semibold text-amber-300 tracking-wide uppercase">{t("medal.new_medal")}</p>
-        </div>
-
-        <MedalCard
-          imageUrl={imageUrl}
-          name={name}
-          description={description}
-          tier={tier}
-          earnedAt={earnedAt}
-          size={260}
-        />
-
-        <button
-          onClick={onClose}
-          className="mt-2 w-full rounded-full bg-pinterest-red text-canvas-white py-4 text-body font-semibold active:scale-[0.98] transition-transform"
-        >
-          {t("medal.great")}
         </button>
       </div>
     </div>

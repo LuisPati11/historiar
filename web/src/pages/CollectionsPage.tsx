@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   getCollectionsProgress, type CollectionProgress,
-  getCollectionMonuments, type CollectionMonument,
   getLeaderboard, getMyRank, type LeaderboardEntry,
-} from "../lib/supabase";
-import { useAuth } from "../context/AuthContext";
+} from "../lib/api/achievements";
+import { getCollectionMonuments, type CollectionMonument } from "../lib/api/monuments";
+import { useAuth } from "../context/authContext";
 import { AvatarImage } from "../components/AvatarPicker";
 import { BottomNav } from "../components/BottomNav";
 import { TIER_CONFIG as TIER_BASE } from "../lib/tierConfig";
+import { useModalAccessibility } from "../hooks/useModalAccessibility";
 
 // ─── Tier styles ─────────────────────────────────────────────────────────────
 
@@ -92,7 +93,7 @@ function CollectionCard({ c, monuments }: { c: CollectionProgress; monuments: Co
 
         {/* Badge de tier */}
         <span className={`inline-flex items-center rounded-full border px-3 py-0.5 text-xs font-medium ${mc.badge}`}>
-          {tier?.label} · {c.medal_name}
+          {t(tier.labelKey)} · {c.medal_name}
         </span>
       </div>
 
@@ -323,13 +324,23 @@ function RankingTab() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [myRank, setMyRank] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const infoCloseRef = useModalAccessibility(() => setShowInfo(false), showInfo);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setLoadError(false);
     Promise.all([getLeaderboard(50), user ? getMyRank() : Promise.resolve(null)])
-      .then(([lb, rank]) => { setEntries(lb); setMyRank(rank); })
-      .finally(() => setLoading(false));
-  }, [user]);
+      .then(([lb, rank]) => {
+        if (!cancelled) { setEntries(lb); setMyRank(rank); }
+      })
+      .catch(() => { if (!cancelled) setLoadError(true); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [user, reloadKey]);
 
   if (loading) return (
     <div className="px-5 space-y-2">
@@ -344,6 +355,16 @@ function RankingTab() {
           <div className="size-8 rounded-full bg-whisper-gray shrink-0"/>
         </div>
       ))}
+    </div>
+  );
+
+  if (loadError) return (
+    <div className="px-5 py-14 text-center">
+      <p className="text-body font-semibold text-graphite">{t("collections.load_error_title")}</p>
+      <p className="mt-1 text-body-sm text-ash-gray">{t("common.connection_error")}</p>
+      <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-4 rounded-full border border-whisper-gray px-6 py-2.5 text-body font-medium text-graphite">
+        {t("common.retry")}
+      </button>
     </div>
   );
 
@@ -368,7 +389,9 @@ function RankingTab() {
           <p className="text-body-sm text-ash-gray">{t("collections.weekly_ranking")}</p>
         </div>
         <button
+          type="button"
           onClick={() => setShowInfo(true)}
+          aria-label={t("collections.ranking_info_title")}
           className="size-8 rounded-full bg-whisper-gray flex items-center justify-center text-ash-gray active:bg-[#e0e0e0] transition-colors"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -422,10 +445,14 @@ function RankingTab() {
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-jet-black/40 backdrop-blur-sm"
           onClick={() => setShowInfo(false)}
+          role="presentation"
         >
           <div
             className="bg-canvas-white rounded-t-3xl w-full max-w-lg px-6 pt-6 pb-10 space-y-4"
             onClick={e => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ranking-info-title"
           >
             <div className="flex items-center gap-3">
               <div className="size-10 rounded-full bg-whisper-gray flex items-center justify-center shrink-0">
@@ -434,10 +461,12 @@ function RankingTab() {
                   <path d="M8 7v5M8 5.5v.5" stroke="#9E9E9E" strokeWidth="1.4" strokeLinecap="round"/>
                 </svg>
               </div>
-              <h3 className="text-subheading font-bold text-jet-black">{t("collections.ranking_info_title")}</h3>
+              <h3 id="ranking-info-title" className="text-subheading font-bold text-jet-black">{t("collections.ranking_info_title")}</h3>
             </div>
             <p className="text-body text-graphite leading-relaxed">{t("collections.ranking_info_body")}</p>
             <button
+              ref={infoCloseRef}
+              type="button"
               onClick={() => setShowInfo(false)}
               className="w-full rounded-2xl bg-jet-black text-canvas-white py-3.5 text-body font-semibold"
             >
@@ -463,23 +492,28 @@ export function CollectionsPage() {
   const [monumentsMap, setMonumentsMap] = useState<Record<string, CollectionMonument[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
     getCollectionsProgress()
       .then(async (data) => {
+        if (cancelled) return;
         setCollections(data);
-        // Cargar imágenes de todas las colecciones en paralelo
         const entries = await Promise.all(
           data.map(c =>
             getCollectionMonuments(c.collection_id, 3)
               .then(m => [c.collection_id, m] as [string, CollectionMonument[]])
           )
         );
-        setMonumentsMap(Object.fromEntries(entries));
+        if (!cancelled) setMonumentsMap(Object.fromEntries(entries));
       })
-      .catch((e) => setError((e as Error).message))
-      .finally(() => setLoading(false));
-  }, []);
+      .catch(() => { if (!cancelled) setError(t("collections.load_error_hint")); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [reloadKey, t, user?.id]);
 
   const completed = collections.filter(c => !!c.earned_at);
   const pending   = collections.filter(c => !c.earned_at);
@@ -530,7 +564,7 @@ export function CollectionsPage() {
               <p className="text-body font-semibold text-graphite">{t("collections.load_error_title")}</p>
               <p className="text-body-sm text-ash-gray">{t("collections.load_error_hint")}</p>
               <button
-                onClick={() => { setLoading(true); setError(null); getCollectionsProgress().then(setCollections).catch(e => setError((e as Error).message)).finally(() => setLoading(false)); }}
+                onClick={() => setReloadKey((value) => value + 1)}
                 className="mt-1 rounded-full border border-whisper-gray text-graphite px-6 py-2.5 text-body font-medium"
               >
                 {t("common.retry")}

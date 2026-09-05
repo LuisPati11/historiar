@@ -69,11 +69,11 @@ export function AvatarImage({
 
   return (
     <div className={`${sizeClass} rounded-full overflow-hidden bg-whisper-gray flex items-center justify-center shrink-0 ${className}`}>
-      {avatarId ? (
+      {avatar ? (
         <>
           <img
-            src={`/avatars/${avatarId}.png`}
-            alt={avatar ? t(avatar.labelKey) : "Avatar"}
+            src={`/avatars/${avatar.id}.png`}
+            alt={t(avatar.labelKey)}
             className="w-full h-full object-cover scale-[1.18]"
             onError={(e) => {
               const el = e.currentTarget;
@@ -82,7 +82,7 @@ export function AvatarImage({
             }}
           />
           <span style={{ display: "none" }} className="text-xl w-full h-full items-center justify-center">
-            {avatar?.emoji ?? "🧭"}
+            {avatar.emoji}
           </span>
         </>
       ) : (

@@ -4,6 +4,7 @@
     "tagline": "Monumentos cerca de ti"
   },
   "home": {
+    "ar_available": "Experiencia AR disponible",
     "title": "Explora",
     "list": "Lista",
     "map": "Mapa",
@@ -14,7 +15,8 @@
     "no_geolocation_hint": "Prueba a abrirla en un dispositivo móvil.",
     "searching": "Buscando monumentos cerca de ti…",
     "activate_ar": "Activar AR",
-    "nearby_count": "{{count}} monumentos cerca",
+    "nearby_count_one": "{{count}} monumento cerca",
+    "nearby_count_other": "{{count}} monumentos cerca",
     "scan_qr_hint": "Escanea el código QR junto al monumento",
     "no_geolocation": "Geolocalización no disponible en este dispositivo.",
     "location_denied": "Activa la ubicación para ver los monumentos más cercanos.",
@@ -25,6 +27,7 @@
     "location_denied_action": "Cómo activar la ubicación"
   },
   "ar": {
+    "media_error": "No se ha podido reproducir el vídeo o el audio. Vuelve a intentarlo.",
     "loading": "Cargando monumento…",
     "not_found": "Monumento no encontrado.",
     "no_content": "Este monumento aún no tiene contenido publicado.",
@@ -33,10 +36,19 @@
     "gps_far": "Debes estar junto al monumento para acceder a esta experiencia.",
     "gps_denied": "Activa el permiso de ubicación para verificar que estás en el monumento.",
     "error": "Algo ha ido mal. Inténtalo de nuevo.",
+    "start_scanner": "Abrir cámara AR",
+    "camera_starting": "Preparando la cámara…",
+    "point_at_monument": "Apunta la cámara a la fachada del monumento",
+    "target_found": "¡Monumento reconocido!",
+    "camera_error": "No se pudo iniciar la cámara AR. Revisa el permiso de cámara e inténtalo de nuevo.",
+    "visit_not_saved": "La experiencia continúa, pero no se ha podido guardar la visita.",
     "start_experience": "Iniciar experiencia",
-    "experience_ended": "¡Fin de la experiencia!"
+    "experience_ended": "¡Fin de la experiencia!",
+    "restart": "Volver a reproducir"
   },
   "auth": {
+    "email_placeholder": "tu@email.com",
+    "generic_error": "No se pudo completar el acceso. Revisa los datos e inténtalo de nuevo.",
     "login_hero": "Explora la historia\na tu alrededor",
     "register_hero": "Crea tu cuenta de explorador",
     "explorer_name": "Nombre de explorador",
@@ -55,6 +67,8 @@
     "register_tagline": "Empieza a descubrir monumentos",
     "email": "Email",
     "password": "Contraseña",
+    "show_password": "Mostrar contraseña",
+    "hide_password": "Ocultar contraseña",
     "username": "Nombre de usuario",
     "username_placeholder": "explorador42",
     "skip": "Continuar sin cuenta",
@@ -84,6 +98,8 @@
     "bio": "Biografía",
     "make_public": "Perfil público",
     "make_private": "Perfil privado",
+    "privacy_hint": "Si lo activas, otros exploradores podrán ver tu perfil, medallas y totales; nunca tus visitas concretas.",
+    "privacy_save_error": "No se pudo guardar la privacidad. Inténtalo de nuevo.",
     "language": "Idioma",
     "language_save_error": "No se pudo guardar el idioma. Inténtalo de nuevo.",
     "saving": "Guardando…",
@@ -144,7 +160,7 @@
     "invite_hint": "y subid juntos en el ranking",
     "invite_btn": "Invitar",
     "ranking_info_title": "¿Cómo funciona el ranking?",
-    "ranking_info_body": "El ranking ordena a los exploradores por número de visitas verificadas a monumentos. Solo cuentan las visitas confirmadas con GPS. Se actualiza en tiempo real.",
+    "ranking_info_body": "El ranking ordena los perfiles públicos por medallas obtenidas y después por visitas verificadas. Las visitas requieren confirmación de GPS y reconocimiento de imagen.",
     "ranking_info_close": "Entendido",
     "loading": "Cargando colecciones…",
     "load_error_title": "No se pudieron cargar las colecciones",
@@ -153,9 +169,14 @@
     "empty_hint": "Visita monumentos para desbloquear colecciones y ganar medallas.",
     "explore_monuments": "Explorar monumentos",
     "visited": "visitados",
-    "see_collection": "Ver colección"
+    "see_collection": "Ver colección",
+    "collection": "Colección",
+    "monuments": "Monumentos",
+    "not_found": "No se ha encontrado esta colección.",
+    "back_to_collections": "Volver a colecciones"
   },
   "medal": {
+    "tier": {"bronze": "Bronce", "silver": "Plata", "gold": "Oro", "diamond": "Diamante"},
     "earned_on": "Conseguida el {{date}}",
     "rarity": {
       "bronze": "Individual · Villa",
@@ -188,12 +209,19 @@
     "view_detail": "Ver detalle"
   },
   "common": {
+    "back": "Volver",
     "close": "Cerrar",
     "change_avatar": "Cambiar avatar",
     "retry": "Reintentar",
     "connection_error": "Comprueba tu conexión e inténtalo de nuevo.",
+    "action_error": "No se pudo completar la acción. Inténtalo de nuevo.",
+    "unexpected_error": "Algo ha ido mal",
+    "reload": "Recargar aplicación",
+    "not_found": "Esta página no existe",
+    "back_home": "Volver al inicio",
     "empty_users": "Sin usuarios aún",
-    "explorer": "Explorador"
+    "explorer": "Explorador",
+    "loading": "Cargando"
   },
   "avatar": {
     "quijote": "Don Quijote",

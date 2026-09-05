@@ -1,20 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { supabase, syncProfile } from "../lib/supabase";
+import { publicStorageUrl, supabase } from "../lib/supabaseClient";
 import { AvatarPicker, type AvatarId } from "../components/AvatarPicker";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { currentLocale, type Locale } from "../lib/i18n";
+import { safeInternalPath } from "../lib/navigation";
+import { useAuth } from "../context/authContext";
 
 type Mode = "login" | "register";
 
-const HERO_URL = "https://qvevpackpwpjqgsapqws.supabase.co/storage/v1/object/public/monument-images/puerta-toledo-login.jpg";
+const HERO_URL = publicStorageUrl("monument-images", "puerta-toledo-login.jpg");
 
 export function AuthPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: string })?.from ?? "/";
+  const { user, loading: authLoading } = useAuth();
+  const from = safeInternalPath((location.state as { from?: string } | null)?.from);
+  const emailRedirectTo = `${window.location.origin}/auth`;
 
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -26,7 +30,12 @@ export function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [resent, setResent] = useState(false);
+  const [resending, setResending] = useState(false);
   const [locale, setLocale] = useState<Locale>(() => currentLocale());
+
+  useEffect(() => {
+    if (!authLoading && user) navigate(from, { replace: true });
+  }, [authLoading, from, navigate, user]);
 
   const handleLocaleChange = async (nextLocale: Locale) => {
     setLocale(nextLocale);
@@ -40,25 +49,26 @@ export function AuthPage() {
     try {
       if (mode === "register") {
         if (!avatar) { setError(t("auth.avatar_required")); setLoading(false); return; }
-        const finalUsername = username || email.split("@")[0];
+        const finalUsername = username.trim() || email.split("@")[0].slice(0, 80);
         const { error, data } = await supabase.auth.signUp({
           email, password,
           options: {
             data: { username: finalUsername, full_name: finalUsername, avatar, locale },
-            emailRedirectTo: "https://travel-guide-medals.netlify.app",
+            emailRedirectTo,
           },
         });
         if (error) throw error;
-        if (data.user) await syncProfile(finalUsername, avatar, locale);
-        setPendingEmail(email);
-        return;
+        if (!data.session) {
+          setPendingEmail(email);
+          return;
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
       navigate(from, { replace: true });
-    } catch (err) {
-      setError((err as Error).message);
+    } catch {
+      setError(t("auth.generic_error"));
     } finally {
       setLoading(false);
     }
@@ -72,10 +82,24 @@ export function AuthPage() {
           <h1 className="text-heading font-bold text-jet-black mb-2">{t("auth.check_email_title")}</h1>
           <p className="text-body text-ash-gray mb-1">{t("auth.check_email_body")}</p>
           <p className="text-body font-medium text-graphite mb-8">{pendingEmail}</p>
-          <button onClick={async () => { setResent(false); await supabase.auth.resend({ type: "signup", email: pendingEmail, options: { emailRedirectTo: "https://travel-guide-medals.netlify.app" } }); setResent(true); }}
+          <button type="button" disabled={resending} onClick={async () => {
+            setResent(false);
+            setError(null);
+            setResending(true);
+            try {
+              const { error: resendError } = await supabase.auth.resend({ type: "signup", email: pendingEmail, options: { emailRedirectTo } });
+              if (resendError) throw resendError;
+              setResent(true);
+            } catch {
+              setError(t("auth.generic_error"));
+            } finally {
+              setResending(false);
+            }
+          }}
             className="rounded-full border border-[#DDD8D0] bg-canvas-white text-graphite px-6 py-3 text-body font-medium">
-            {resent ? t("auth.check_email_resent") : t("auth.check_email_resend")}
+            {resending ? "…" : resent ? t("auth.check_email_resent") : t("auth.check_email_resend")}
           </button>
+          {error && <p role="alert" className="mt-3 text-body-sm text-red-600">{error}</p>}
           <button onClick={() => navigate("/", { replace: true })} className="w-full text-center mt-4 text-body-sm text-ash-gray">
             {t("auth.skip")}
           </button>
@@ -89,7 +113,7 @@ export function AuthPage() {
 
       {/* Hero con gradiente */}
       <div className="relative w-full shrink-0" style={{ height: mode === "register" ? "25vh" : "40vh", minHeight: mode === "register" ? "140px" : "200px" }}>
-        <img src={HERO_URL} alt="HistoriAR" className="w-full h-full object-cover" style={{ objectPosition: "70% 38%" }} />
+        <img src={HERO_URL} alt="HistoriAR" onError={(event) => { event.currentTarget.hidden = true; }} className="w-full h-full object-cover" style={{ objectPosition: "70% 38%" }} />
         <div className="absolute inset-0" style={{
           background: "linear-gradient(to bottom, transparent 30%, #F5F2EE 100%)"
         }} />
@@ -122,14 +146,14 @@ export function AuthPage() {
 
           {mode === "register" && (
             <div>
-              <label className="block text-body-sm font-semibold text-graphite mb-2">{t("auth.explorer_name")}</label>
+              <label htmlFor="auth-username" className="block text-body-sm font-semibold text-graphite mb-2">{t("auth.explorer_name")}</label>
               <div className="flex items-center gap-3 border-b border-[#CCC8C2] pb-2">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                   <circle cx="9" cy="6" r="3.5" stroke="#9E9E9E" strokeWidth="1.3" fill="none"/>
                   <path d="M2 16c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke="#9E9E9E" strokeWidth="1.3" strokeLinecap="round" fill="none"/>
                 </svg>
-                <input type="text" value={username} onChange={e => setUsername(e.target.value)}
-                  placeholder="tu_nombre" autoComplete="username"
+                <input id="auth-username" type="text" value={username} onChange={e => setUsername(e.target.value)} maxLength={80}
+                  placeholder={t("auth.username_placeholder")} autoComplete="username"
                   className="flex-1 bg-transparent text-body text-graphite placeholder:text-[#BBB7B0] focus:outline-none" />
               </div>
             </div>
@@ -137,31 +161,31 @@ export function AuthPage() {
 
           {/* Email */}
           <div>
-            <label className="block text-body-sm font-semibold text-graphite mb-2">{t("auth.email")}</label>
+            <label htmlFor="auth-email" className="block text-body-sm font-semibold text-graphite mb-2">{t("auth.email")}</label>
             <div className="flex items-center gap-3 border-b border-[#CCC8C2] pb-2">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <rect x="2" y="4" width="14" height="10" rx="1.5" stroke="#9E9E9E" strokeWidth="1.3" fill="none"/>
                 <polyline points="2,5 9,11 16,5" stroke="#9E9E9E" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
-              <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="tu@email.com" autoComplete="email"
+              <input id="auth-email" type="email" required value={email} onChange={e => setEmail(e.target.value)}
+                placeholder={t("auth.email_placeholder")} autoComplete="email" autoCapitalize="none" spellCheck={false}
                 className="flex-1 bg-transparent text-body text-graphite placeholder:text-[#BBB7B0] focus:outline-none" />
             </div>
           </div>
 
           {/* Contraseña */}
           <div>
-            <label className="block text-body-sm font-semibold text-graphite mb-2">{t("auth.password")}</label>
+            <label htmlFor="auth-password" className="block text-body-sm font-semibold text-graphite mb-2">{t("auth.password")}</label>
             <div className="flex items-center gap-3 border-b border-[#CCC8C2] pb-2">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <rect x="4" y="8" width="10" height="7" rx="1.5" stroke="#9E9E9E" strokeWidth="1.3" fill="none"/>
                 <path d="M6 8V6a3 3 0 016 0v2" stroke="#9E9E9E" strokeWidth="1.3" strokeLinecap="round" fill="none"/>
               </svg>
-              <input type={showPassword ? "text" : "password"} required minLength={6}
+              <input id="auth-password" type={showPassword ? "text" : "password"} required minLength={mode === "register" ? 8 : undefined}
                 value={password} onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••" autoComplete={mode === "register" ? "new-password" : "current-password"}
                 className="flex-1 bg-transparent text-body text-graphite placeholder:text-[#BBB7B0] focus:outline-none" />
-              <button type="button" onClick={() => setShowPassword(v => !v)} className="shrink-0 text-ash-gray">
+              <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? t("auth.hide_password") : t("auth.show_password")} className="shrink-0 text-ash-gray">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                   {showPassword ? (
                     <>
@@ -195,7 +219,7 @@ export function AuthPage() {
             </>
           )}
 
-          {error && <p className="text-body-sm text-red-600 bg-red-50 rounded-xl px-4 py-2">{error}</p>}
+          {error && <p role="alert" className="text-body-sm text-red-600 bg-red-50 rounded-xl px-4 py-2">{error}</p>}
 
           {/* Botón principal */}
           <button type="submit" disabled={loading}

@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import QrScanner from "qr-scanner";
-
-const AR_PATH_RE = /\/ar\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
+import { extractArMonumentId } from "../lib/qr";
 
 export function ScanPage() {
   const { t } = useTranslation();
@@ -14,19 +13,22 @@ export function ScanPage() {
   const [scanning, setScanning] = useState(false);
   const [started, setStarted] = useState(false);
 
-  const startScanner = async () => {
-    if (!videoRef.current || started) return;
+  const startScanner = useCallback(async () => {
+    if (!videoRef.current || scannerRef.current) return;
     setStarted(true);
     setError(null);
 
     const scanner = new QrScanner(
       videoRef.current,
       (result) => {
-        const match = result.data.match(AR_PATH_RE);
-        if (match) {
+        const monumentId = extractArMonumentId(result.data);
+        if (monumentId) {
+          if (scannerRef.current !== scanner) return;
+          scannerRef.current = null;
           scanner.stop();
+          scanner.destroy();
           setScanning(false);
-          navigate(`/ar/${match[1]}`);
+          navigate(`/ar/${monumentId}`);
         }
       },
       { preferredCamera: "environment", highlightScanRegion: true, highlightCodeOutline: true },
@@ -35,29 +37,42 @@ export function ScanPage() {
     scannerRef.current = scanner;
     try {
       await scanner.start();
+      if (scannerRef.current !== scanner) {
+        scanner.destroy();
+        return;
+      }
       setScanning(true);
     } catch {
+      scanner.destroy();
+      if (scannerRef.current !== scanner) return;
+      scannerRef.current = null;
       setError(t("scan.camera_error"));
       setStarted(false);
     }
-  };
+  }, [navigate, t]);
 
   useEffect(() => {
+    let active = true;
     // Arrancar automáticamente solo si el permiso ya está concedido
     navigator.permissions?.query({ name: "camera" as PermissionName })
-      .then(p => { if (p.state === "granted") startScanner(); })
+      .then(p => { if (active && p.state === "granted") void startScanner(); })
       .catch(() => {});
 
-    return () => { scannerRef.current?.stop(); scannerRef.current?.destroy(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return () => {
+      active = false;
+      scannerRef.current?.destroy();
+      scannerRef.current = null;
+    };
+  }, [startScanner]);
 
   return (
     <main className="fixed inset-0 bg-jet-black flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 z-10">
         <button
+          type="button"
           onClick={() => navigate(-1)}
+          aria-label={t("common.back")}
           className="rounded-full bg-jet-black/60 backdrop-blur size-10 flex items-center justify-center"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -93,8 +108,10 @@ export function ScanPage() {
         {!scanning && !error && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6">
             <button
-              onClick={startScanner}
+              type="button"
+              onClick={() => void startScanner()}
               disabled={started}
+              aria-label={t("scan.tap_to_activate")}
               className="size-20 rounded-full bg-canvas-white/15 border-2 border-canvas-white/40 flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
             >
               <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
@@ -113,7 +130,7 @@ export function ScanPage() {
         {error ? (
           <div className="flex flex-col gap-3 items-center">
             <p className="text-red-400 text-body">{error}</p>
-            <button onClick={() => { setStarted(false); setError(null); startScanner(); }}
+            <button type="button" onClick={() => void startScanner()}
               className="text-canvas-white/70 text-body-sm underline">
               {t("scan.retry")}
             </button>

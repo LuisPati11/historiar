@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../context/AuthContext";
-import { getUserMedals, getFollowers, getFollowing, getCollectionsProgress, getMyProfileSettings, updatePreferredLocale, type UserMedal, type FollowUser, type CollectionProgress } from "../lib/supabase";
-import { supabase, syncProfile } from "../lib/supabase";
+import { useAuth } from "../context/authContext";
+import { getUserMedals, getCollectionsProgress, type UserMedal, type CollectionProgress } from "../lib/api/achievements";
+import { getFollowers, getFollowing, type FollowUser } from "../lib/api/social";
+import { getMyProfileSettings, syncProfile, updatePreferredLocale, updateProfileVisibility } from "../lib/api/profile";
+import { publicStorageUrl, supabase } from "../lib/supabaseClient";
 import { AvatarImage, AvatarPicker, type AvatarId } from "../components/AvatarPicker";
 import { FollowListModal } from "../components/FollowListModal";
 import { BottomNav } from "../components/BottomNav";
@@ -11,8 +13,10 @@ import { TIER_CONFIG } from "../lib/tierConfig";
 import { MedalModal } from "../components/MedalCard";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { currentLocale, normalizeLocale, type Locale } from "../lib/i18n";
+import { useModalAccessibility } from "../hooks/useModalAccessibility";
+import { GyroPermissionBanner } from "../components/GyroPermissionBanner";
 
-const HERO_URL = "https://qvevpackpwpjqgsapqws.supabase.co/storage/v1/object/public/monument-images/puerta-toledo-login.jpg";
+const HERO_URL = publicStorageUrl("monument-images", "puerta-toledo-login.jpg");
 
 export function ProfilePage() {
   const { t, i18n } = useTranslation();
@@ -24,38 +28,72 @@ export function ProfilePage() {
   const [following, setFollowing] = useState<FollowUser[]>([]);
   const [collectionsProgress, setCollectionsProgress] = useState<CollectionProgress[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [editingAvatar, setEditingAvatar] = useState(false);
   const [savingAvatar, setSavingAvatar] = useState(false);
   const [savingLocale, setSavingLocale] = useState(false);
   const [localeError, setLocaleError] = useState<string | null>(null);
   const [locale, setLocale] = useState<Locale>(() => currentLocale());
+  const [isPublic, setIsPublic] = useState(false);
+  const [savingPrivacy, setSavingPrivacy] = useState(false);
+  const [privacyError, setPrivacyError] = useState<string | null>(null);
   const [showFollowList, setShowFollowList] = useState<"followers" | "following" | null>(null);
   const [selectedMedal, setSelectedMedal] = useState<UserMedal | null>(null);
+  const avatarCloseRef = useModalAccessibility(() => setEditingAvatar(false), editingAvatar && !savingAvatar);
 
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate("/auth", { state: { from: "/profile" } }); return; }
+    let cancelled = false;
+    setDataLoading(true);
+    setDataError(false);
 
     Promise.all([getUserMedals(), getFollowers(user.id), getFollowing(user.id), getCollectionsProgress(), getMyProfileSettings()])
       .then(([m, frs, fng, cp, settings]) => {
-        const preferredLocale = normalizeLocale((user.user_metadata as { locale?: string } | undefined)?.locale ?? settings?.locale);
+        if (cancelled) return;
+        const preferredLocale = normalizeLocale(settings?.locale ?? (user.user_metadata as { locale?: string } | undefined)?.locale);
         setMedals(m);
         setFollowers(frs);
         setFollowing(fng);
         setCollectionsProgress(cp);
         setLocale(preferredLocale);
+        setIsPublic(settings?.is_public ?? false);
         void i18n.changeLanguage(preferredLocale);
       })
-      .finally(() => setDataLoading(false));
-  }, [user, loading, navigate, i18n]);
+      .catch(() => { if (!cancelled) setDataError(true); })
+      .finally(() => { if (!cancelled) setDataLoading(false); });
+    return () => { cancelled = true; };
+  }, [user, loading, navigate, i18n, reloadKey, t]);
 
   const handleAvatarChange = async (newAvatar: AvatarId) => {
     setSavingAvatar(true);
-    await supabase.auth.updateUser({ data: { avatar: newAvatar } });
-    await syncProfile(username, newAvatar, locale);
-    await supabase.auth.refreshSession();
-    setSavingAvatar(false);
-    setEditingAvatar(false);
+    try {
+      const { error } = await supabase.auth.updateUser({ data: { avatar: newAvatar } });
+      if (error) throw error;
+      await syncProfile(username, newAvatar, locale);
+      await supabase.auth.refreshSession();
+      setEditingAvatar(false);
+    } catch {
+      setLocaleError(t("common.connection_error"));
+    } finally {
+      setSavingAvatar(false);
+    }
+  };
+
+  const handlePrivacyChange = async () => {
+    const nextValue = !isPublic;
+    setIsPublic(nextValue);
+    setSavingPrivacy(true);
+    setPrivacyError(null);
+    try {
+      await updateProfileVisibility(nextValue);
+    } catch {
+      setIsPublic(!nextValue);
+      setPrivacyError(t("profile.privacy_save_error"));
+    } finally {
+      setSavingPrivacy(false);
+    }
   };
 
   const handleLocaleChange = async (nextLocale: Locale) => {
@@ -63,26 +101,35 @@ export function ProfilePage() {
     setLocale(nextLocale);
     setSavingLocale(true);
     setLocaleError(null);
-    await i18n.changeLanguage(nextLocale);
 
+    let timeoutId = 0;
     const timeout = new Promise<never>((_, reject) => {
-      window.setTimeout(() => reject(new Error(t("profile.language_save_error"))), 8000);
+      timeoutId = window.setTimeout(() => reject(new Error(t("profile.language_save_error"))), 8000);
     });
 
     try {
       await Promise.race([
-        Promise.all([
-          supabase.auth.updateUser({ data: { locale: nextLocale } }),
-          updatePreferredLocale(nextLocale),
-        ]),
+        updatePreferredLocale(nextLocale),
         timeout,
       ]);
+      await i18n.changeLanguage(nextLocale);
     } catch {
       setLocale(previousLocale);
       setLocaleError(t("profile.language_save_error"));
       await i18n.changeLanguage(previousLocale);
     } finally {
+      window.clearTimeout(timeoutId);
       setSavingLocale(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    setLocaleError(null);
+    try {
+      await signOut();
+      navigate("/", { replace: true });
+    } catch {
+      setLocaleError(t("common.action_error"));
     }
   };
 
@@ -124,6 +171,19 @@ export function ProfilePage() {
     );
   }
 
+  if (dataError) {
+    return (
+      <main className="min-h-full flex flex-col items-center justify-center px-6 text-center gap-3 bg-[#F5F2EE]">
+        <p className="text-4xl">📡</p>
+        <h1 className="text-subheading font-semibold text-graphite">{t("user_profile.load_error_title")}</h1>
+        <p className="text-body-sm text-ash-gray">{t("common.connection_error")}</p>
+        <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-2 rounded-full bg-pinterest-red px-5 py-2.5 text-body-sm font-semibold text-canvas-white">
+          {t("common.retry")}
+        </button>
+      </main>
+    );
+  }
+
   return (
     <main className="h-full overflow-y-auto pb-24 bg-[#F5F2EE]">
 
@@ -132,6 +192,7 @@ export function ProfilePage() {
         <img
           src={HERO_URL}
           alt="HistoriAR"
+          onError={(event) => { event.currentTarget.hidden = true; }}
           className="w-full h-full object-cover"
           style={{ objectPosition: "50% 40%" }}
         />
@@ -149,7 +210,7 @@ export function ProfilePage() {
             {t("nav.back")}
           </button>
           <button
-            onClick={() => { signOut(); navigate("/"); }}
+            onClick={() => { void handleSignOut(); }}
             className="rounded-full border border-canvas-white/80 bg-canvas-white/10 backdrop-blur-sm text-canvas-white px-4 py-1.5 text-body-sm font-medium"
           >
             {t("auth.sign_out")}
@@ -195,20 +256,46 @@ export function ProfilePage() {
           {localeError && (
             <p className="text-body-sm text-red-600 mt-2">{localeError}</p>
           )}
+          <div className="mt-4 border-t border-whisper-gray pt-4 flex items-center gap-4">
+            <div className="flex-1">
+              <p className="text-body font-semibold text-graphite">
+                {isPublic ? t("profile.make_public") : t("profile.make_private")}
+              </p>
+              <p className="text-body-sm text-ash-gray">{t("profile.privacy_hint")}</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isPublic}
+              aria-label={t("profile.make_public")}
+              disabled={savingPrivacy}
+              onClick={() => void handlePrivacyChange()}
+              className={`relative h-7 w-12 rounded-full transition-colors disabled:opacity-50 ${isPublic ? "bg-pinterest-red" : "bg-ash-gray"}`}
+            >
+              <span className={`absolute top-1 size-5 rounded-full bg-canvas-white transition-transform ${isPublic ? "translate-x-6" : "translate-x-1"}`} />
+            </button>
+          </div>
+          {privacyError && <p className="text-body-sm text-red-600 mt-2">{privacyError}</p>}
         </div>
 
         {/* Stats 2×2 */}
         <div className="grid grid-cols-2 gap-3 mb-6">
-          <StatCard
-            icon={<MedalIcon />}
-            value={medals.length}
-            label={t("profile.medals")}
-          />
-          <StatCard
-            icon={<CollectionIcon />}
-            value={collectionsCount}
-            label={t("profile.collections")}
-          />
+          <button
+            onClick={() => document.getElementById("medals-section")?.scrollIntoView({ behavior: "smooth" })}
+            className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 text-center active:bg-whisper-gray transition-colors"
+          >
+            <div className="flex justify-center mb-1"><MedalIcon /></div>
+            <p className="text-heading font-bold text-jet-black">{medals.length}</p>
+            <p className="text-body-sm text-ash-gray">{t("profile.medals")}</p>
+          </button>
+          <button
+            onClick={() => navigate("/collections")}
+            className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 text-center active:bg-whisper-gray transition-colors"
+          >
+            <div className="flex justify-center mb-1"><CollectionIcon /></div>
+            <p className="text-heading font-bold text-jet-black">{collectionsCount}</p>
+            <p className="text-body-sm text-ash-gray">{t("profile.collections")}</p>
+          </button>
           <button
             onClick={() => setShowFollowList("followers")}
             className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 text-center active:bg-whisper-gray transition-colors"
@@ -228,7 +315,7 @@ export function ProfilePage() {
         </div>
 
         {/* Medallas */}
-        <h2 className="text-subheading font-bold text-jet-black mb-4">{t("profile.medals")}</h2>
+        <h2 id="medals-section" className="text-subheading font-bold text-jet-black mb-4">{t("profile.medals")}</h2>
         {medals.length === 0 ? (
           <div className="rounded-3xl bg-canvas-white border border-whisper-gray px-6 py-10 text-center">
             <div className="flex justify-center mb-3">
@@ -264,7 +351,7 @@ export function ProfilePage() {
                       )}
                     </div>
                     <span className={`rounded-full px-2.5 py-0.5 text-body-sm font-medium shrink-0 ${tier?.colors ?? "bg-whisper-gray text-graphite"}`}>
-                      {tier?.label ?? "—"}
+                      {tier ? t(tier.labelKey) : "—"}
                     </span>
                   </button>
                 </li>
@@ -277,15 +364,15 @@ export function ProfilePage() {
       {/* Modal cambio de avatar */}
       {editingAvatar && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-jet-black/60 backdrop-blur-sm px-6">
-          <div className="bg-canvas-white rounded-3xl p-6 w-full max-w-sm">
-            <h3 className="text-subheading font-bold text-jet-black mb-4 text-center">
+          <div className="bg-canvas-white rounded-3xl p-6 w-full max-w-sm" role="dialog" aria-modal="true" aria-labelledby="avatar-picker-title">
+            <h3 id="avatar-picker-title" className="text-subheading font-bold text-jet-black mb-4 text-center">
               {t("auth.choose_avatar")}
             </h3>
             <AvatarPicker selected={avatarId as AvatarId} onSelect={handleAvatarChange} />
             {savingAvatar ? (
               <p className="text-center text-body-sm text-ash-gray mt-4">{t("profile.saving")}</p>
             ) : (
-              <button onClick={() => setEditingAvatar(false)} className="mt-5 w-full rounded-2xl bg-whisper-gray text-graphite py-2.5 text-body font-medium">
+              <button ref={avatarCloseRef} type="button" onClick={() => setEditingAvatar(false)} className="mt-5 w-full rounded-2xl bg-whisper-gray text-graphite py-2.5 text-body font-medium">
                 {t("nav.cancel")}
               </button>
             )}
@@ -319,20 +406,13 @@ export function ProfilePage() {
         />
       )}
 
+      {medals.length > 0 && <GyroPermissionBanner />}
+
       <BottomNav />
     </main>
   );
 }
 
-function StatCard({ icon, value, label }: { icon: React.ReactNode; value: number; label: string }) {
-  return (
-    <div className="rounded-3xl bg-canvas-white border border-whisper-gray p-4 text-center">
-      <div className="flex justify-center mb-1">{icon}</div>
-      <p className="text-heading font-bold text-jet-black">{value}</p>
-      <p className="text-body-sm text-ash-gray">{label}</p>
-    </div>
-  );
-}
 
 function MedalIcon() {
   return (
