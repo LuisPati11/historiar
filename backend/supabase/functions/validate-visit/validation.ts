@@ -3,6 +3,9 @@ export const MAX_BODY_BYTES = 2_048;
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+// Existing monument IDs include manually assigned PostgreSQL UUIDs.
+const MONUMENT_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type VerificationAttempt = {
   attempt_id: string;
@@ -59,7 +62,7 @@ export function isStartPayload(value: unknown): value is StartPayload {
   return hasOnlyKeys(payload, ["action", "monument_id", "lat", "lng"]) &&
     payload.action === "start" &&
     typeof payload.monument_id === "string" &&
-    UUID_PATTERN.test(payload.monument_id);
+    MONUMENT_ID_PATTERN.test(payload.monument_id);
 }
 
 export function isCompletePayload(value: unknown): value is CompletePayload {
@@ -78,5 +81,5 @@ export function isCompletePayload(value: unknown): value is CompletePayload {
     typeof payload.attempt_id === "string" &&
     UUID_PATTERN.test(payload.attempt_id) &&
     typeof payload.monument_id === "string" &&
-    UUID_PATTERN.test(payload.monument_id);
+    MONUMENT_ID_PATTERN.test(payload.monument_id);
 }

@@ -8,6 +8,32 @@ import {
 const MONUMENT_ID = "00000000-0000-4000-8000-000000000001";
 const ATTEMPT_ID = "00000000-0000-4000-8000-000000000002";
 
+Deno.test("accepts existing monument IDs for both verification stages", () => {
+  const base = {
+    monument_id: "11111111-1111-1111-1111-111111111111",
+    lat: 38.986,
+    lng: -3.927,
+  };
+  assert.equal(isStartPayload({ ...base, action: "start" }), true);
+  assert.equal(
+    isCompletePayload({
+      ...base,
+      action: "complete",
+      attempt_id: ATTEMPT_ID,
+      image_tracked: true,
+    }),
+    true,
+  );
+  assert.equal(
+    isStartPayload({
+      ...base,
+      action: "start",
+      monument_id: `${base.monument_id}extra`,
+    }),
+    false,
+  );
+});
+
 Deno.test("accepts a valid start payload", () => {
   assert.equal(
     isStartPayload({
