@@ -23,6 +23,22 @@ cp .env.example .env   # rellenar con la URL y anon key de tu proyecto Supabase
 pnpm dev
 ```
 
+## Prueba con Supabase local
+
+Con Docker en ejecución, arranca el backend desde la raíz del repositorio:
+
+```bash
+cd backend
+supabase start
+supabase functions serve
+```
+
+En `web/.env.development.local`, configura `VITE_SUPABASE_URL` con la API URL local y `VITE_SUPABASE_ANON_KEY` con la anon key que muestra `supabase status`. Este archivo se ignora en Git y sólo afecta al servidor de desarrollo; no cambia la configuración de `pnpm build`.
+
+En otra terminal, ejecuta `cd web && pnpm dev` desde la raíz. Abre `http://127.0.0.1:5173/`. Puedes recorrer el catálogo como invitado, cambiar de idioma y registrar una cuenta de prueba. Los correos de confirmación se reciben en el buzón local `http://127.0.0.1:54324/`.
+
+El seed permite probar la interfaz, pero la experiencia AR completa necesita cargar los archivos `.mind`, vídeo y audio del monumento.
+
 ## Cómo probar en el iPhone
 
 `getUserMedia` (cámara) y `geolocation` requieren **HTTPS** en iOS Safari. Opciones para desarrollo:
@@ -32,6 +48,8 @@ pnpm dev
 3. **Vercel preview deploy**: `vercel` → URL HTTPS automática.
 
 Una vez con HTTPS, abre la URL en Safari del iPhone, da permiso a cámara y ubicación.
+
+El backend también debe ser accesible desde el teléfono: `127.0.0.1` apunta al propio iPhone, no al Mac. Para estas pruebas, usa un proyecto Supabase remoto operativo, con migraciones y la función `validate-visit` desplegadas. Si preparaste `.env.development.local`, actualiza sus valores para esa prueba: tienen prioridad sobre `.env` al ejecutar `pnpm dev`. Exponer sólo Vite mediante un túnel no hace accesible Supabase local.
 
 ## Image targets (.mind)
 
