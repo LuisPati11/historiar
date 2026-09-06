@@ -78,7 +78,21 @@
     "check_email_title": "Revisa tu email",
     "check_email_body": "Te hemos enviado un enlace de confirmación a",
     "check_email_resend": "Reenviar email",
-    "check_email_resent": "¡Enviado!"
+    "check_email_resent": "¡Enviado!",
+    "forgot_password": "He olvidado mi contraseña",
+    "recovery_hero": "Recupera el acceso a tu cuenta",
+    "reset_hero": "Elige una contraseña nueva",
+    "send_recovery_link": "Enviar enlace de recuperación",
+    "recovery_sent_title": "Revisa tu email",
+    "recovery_sent_body": "Si existe una cuenta con este email, recibirás un enlace para cambiar la contraseña en",
+    "recovery_error": "No se pudo enviar el enlace. Inténtalo de nuevo dentro de unos minutos.",
+    "back_to_login": "Volver a iniciar sesión",
+    "new_password": "Nueva contraseña",
+    "confirm_new_password": "Repite la nueva contraseña",
+    "passwords_do_not_match": "Las contraseñas no coinciden.",
+    "update_password": "Guardar nueva contraseña",
+    "password_update_error": "El enlace ha caducado o no es válido. Solicita uno nuevo.",
+    "password_updated": "Contraseña actualizada. Ya puedes iniciar sesión."
   },
   "nav": {
     "back": "Volver",

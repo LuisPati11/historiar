@@ -8,9 +8,15 @@ import { currentLocale, type Locale } from "../lib/i18n";
 import { safeInternalPath } from "../lib/navigation";
 import { useAuth } from "../context/authContext";
 
-type Mode = "login" | "register";
+type Mode = "login" | "register" | "forgot" | "reset";
 
 const HERO_URL = publicStorageUrl("monument-images", "puerta-toledo-login.jpg");
+
+function initialMode(): Mode {
+  const query = new URLSearchParams(window.location.search);
+  const hash = new URLSearchParams(window.location.hash.slice(1));
+  return query.get("mode") === "reset" || hash.get("type") === "recovery" ? "reset" : "login";
+}
 
 export function AuthPage() {
   const { t, i18n } = useTranslation();
@@ -19,10 +25,12 @@ export function AuthPage() {
   const { user, loading: authLoading } = useAuth();
   const from = safeInternalPath((location.state as { from?: string } | null)?.from);
   const emailRedirectTo = `${window.location.origin}/auth`;
+  const recoveryRedirectTo = `${window.location.origin}/auth?mode=reset`;
 
-  const [mode, setMode] = useState<Mode>("login");
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [avatar, setAvatar] = useState<AvatarId | null>(null);
@@ -31,11 +39,20 @@ export function AuthPage() {
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [resent, setResent] = useState(false);
   const [resending, setResending] = useState(false);
+  const [recoveryRequested, setRecoveryRequested] = useState(false);
+  const [passwordUpdated, setPasswordUpdated] = useState(false);
   const [locale, setLocale] = useState<Locale>(() => currentLocale());
 
   useEffect(() => {
-    if (!authLoading && user) navigate(from, { replace: true });
-  }, [authLoading, from, navigate, user]);
+    if (!authLoading && user && mode !== "reset" && !passwordUpdated) navigate(from, { replace: true });
+  }, [authLoading, from, mode, navigate, passwordUpdated, user]);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setMode("reset");
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleLocaleChange = async (nextLocale: Locale) => {
     setLocale(nextLocale);
@@ -47,6 +64,27 @@ export function AuthPage() {
     setError(null);
     setLoading(true);
     try {
+      if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: recoveryRedirectTo });
+        if (error) throw error;
+        setRecoveryRequested(true);
+        return;
+      }
+      if (mode === "reset") {
+        if (password !== passwordConfirmation) {
+          setError(t("auth.passwords_do_not_match"));
+          return;
+        }
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+        await supabase.auth.signOut();
+        navigate("/auth", { replace: true });
+        setPassword("");
+        setPasswordConfirmation("");
+        setPasswordUpdated(true);
+        setMode("login");
+        return;
+      }
       if (mode === "register") {
         if (!avatar) { setError(t("auth.avatar_required")); setLoading(false); return; }
         const finalUsername = username.trim() || email.split("@")[0].slice(0, 80);
@@ -68,11 +106,36 @@ export function AuthPage() {
       }
       navigate(from, { replace: true });
     } catch {
-      setError(t("auth.generic_error"));
+      setError(t(mode === "forgot" ? "auth.recovery_error" : mode === "reset" ? "auth.password_update_error" : "auth.generic_error"));
     } finally {
       setLoading(false);
     }
   };
+
+  const changeMode = (nextMode: Mode) => {
+    setMode(nextMode);
+    setError(null);
+    setPassword("");
+    setPasswordConfirmation("");
+    setPasswordUpdated(false);
+  };
+
+  if (recoveryRequested) {
+    return (
+      <main className="min-h-full flex items-center justify-center px-6 py-12 bg-[#F5F2EE]">
+        <div className="w-full max-w-sm text-center">
+          <p className="text-5xl mb-6">✉️</p>
+          <h1 className="text-heading font-bold text-jet-black mb-2">{t("auth.recovery_sent_title")}</h1>
+          <p className="text-body text-ash-gray mb-1">{t("auth.recovery_sent_body")}</p>
+          <p className="text-body font-medium text-graphite mb-8">{email}</p>
+          <button type="button" onClick={() => { setRecoveryRequested(false); changeMode("login"); }}
+            className="rounded-full border border-[#DDD8D0] bg-canvas-white text-graphite px-6 py-3 text-body font-medium">
+            {t("auth.back_to_login")}
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   if (pendingEmail) {
     return (
@@ -138,9 +201,15 @@ export function AuthPage() {
             Histori<span className="text-pinterest-red">AR</span>
           </h1>
           <p className="text-body text-ash-gray mt-1">
-            {mode === "login" ? t("auth.login_hero") : t("auth.register_hero")}
+            {mode === "login" ? t("auth.login_hero") : mode === "register" ? t("auth.register_hero") : mode === "forgot" ? t("auth.recovery_hero") : t("auth.reset_hero")}
           </p>
         </div>
+
+        {passwordUpdated && (
+          <p role="status" className="mb-4 text-body-sm text-green-800 bg-green-50 rounded-xl px-4 py-3">
+            {t("auth.password_updated")}
+          </p>
+        )}
 
         <form onSubmit={submit} className="flex flex-col gap-4">
 
@@ -159,8 +228,7 @@ export function AuthPage() {
             </div>
           )}
 
-          {/* Email */}
-          <div>
+          {mode !== "reset" && <div>
             <label htmlFor="auth-email" className="block text-body-sm font-semibold text-graphite mb-2">{t("auth.email")}</label>
             <div className="flex items-center gap-3 border-b border-[#CCC8C2] pb-2">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -171,19 +239,18 @@ export function AuthPage() {
                 placeholder={t("auth.email_placeholder")} autoComplete="email" autoCapitalize="none" spellCheck={false}
                 className="flex-1 bg-transparent text-body text-graphite placeholder:text-[#BBB7B0] focus:outline-none" />
             </div>
-          </div>
+          </div>}
 
-          {/* Contraseña */}
-          <div>
-            <label htmlFor="auth-password" className="block text-body-sm font-semibold text-graphite mb-2">{t("auth.password")}</label>
+          {mode !== "forgot" && <div>
+            <label htmlFor="auth-password" className="block text-body-sm font-semibold text-graphite mb-2">{t(mode === "reset" ? "auth.new_password" : "auth.password")}</label>
             <div className="flex items-center gap-3 border-b border-[#CCC8C2] pb-2">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <rect x="4" y="8" width="10" height="7" rx="1.5" stroke="#9E9E9E" strokeWidth="1.3" fill="none"/>
                 <path d="M6 8V6a3 3 0 016 0v2" stroke="#9E9E9E" strokeWidth="1.3" strokeLinecap="round" fill="none"/>
               </svg>
-              <input id="auth-password" type={showPassword ? "text" : "password"} required minLength={mode === "register" ? 8 : undefined}
+              <input id="auth-password" type={showPassword ? "text" : "password"} required minLength={mode === "register" || mode === "reset" ? 8 : undefined}
                 value={password} onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••" autoComplete={mode === "register" ? "new-password" : "current-password"}
+                placeholder="••••••••" autoComplete={mode === "register" || mode === "reset" ? "new-password" : "current-password"}
                 className="flex-1 bg-transparent text-body text-graphite placeholder:text-[#BBB7B0] focus:outline-none" />
               <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? t("auth.hide_password") : t("auth.show_password")} className="shrink-0 text-ash-gray">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -202,7 +269,29 @@ export function AuthPage() {
                 </svg>
               </button>
             </div>
-          </div>
+          </div>}
+
+          {mode === "reset" && (
+            <div>
+              <label htmlFor="auth-password-confirmation" className="block text-body-sm font-semibold text-graphite mb-2">{t("auth.confirm_new_password")}</label>
+              <div className="flex items-center gap-3 border-b border-[#CCC8C2] pb-2">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                  <rect x="4" y="8" width="10" height="7" rx="1.5" stroke="#9E9E9E" strokeWidth="1.3" fill="none"/>
+                  <path d="M6 8V6a3 3 0 016 0v2" stroke="#9E9E9E" strokeWidth="1.3" strokeLinecap="round" fill="none"/>
+                </svg>
+                <input id="auth-password-confirmation" type={showPassword ? "text" : "password"} required minLength={8}
+                  value={passwordConfirmation} onChange={e => setPasswordConfirmation(e.target.value)}
+                  placeholder="••••••••" autoComplete="new-password"
+                  className="flex-1 bg-transparent text-body text-graphite placeholder:text-[#BBB7B0] focus:outline-none" />
+              </div>
+            </div>
+          )}
+
+          {mode === "login" && (
+            <button type="button" onClick={() => changeMode("forgot")} className="self-end -mt-2 text-body-sm font-semibold text-pinterest-red">
+              {t("auth.forgot_password")}
+            </button>
+          )}
 
           {mode === "register" && (
             <>
@@ -224,18 +313,24 @@ export function AuthPage() {
           {/* Botón principal */}
           <button type="submit" disabled={loading}
             className="w-full rounded-full bg-pinterest-red text-canvas-white py-4 text-body font-semibold flex items-center justify-center gap-2 px-6 disabled:opacity-50 active:scale-[0.98] transition-transform shadow-sm mt-1">
-            <span>{loading ? "…" : mode === "login" ? t("auth.login") : t("auth.register_cta")}</span>
+            <span>{loading ? "…" : mode === "login" ? t("auth.login") : mode === "register" ? t("auth.register_cta") : mode === "forgot" ? t("auth.send_recovery_link") : t("auth.update_password")}</span>
           </button>
         </form>
 
         {/* Cambiar modo */}
-        <p className="text-center text-body-sm text-ash-gray mt-3">
-          {mode === "login" ? t("auth.no_account") : t("auth.has_account")}
-          <button onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(null); }}
-            className="text-pinterest-red font-semibold">
-            {mode === "login" ? t("auth.register_cta") : t("auth.login_cta")} →
+        {mode === "login" || mode === "register" ? (
+          <p className="text-center text-body-sm text-ash-gray mt-3">
+            {mode === "login" ? t("auth.no_account") : t("auth.has_account")}
+            <button onClick={() => changeMode(mode === "login" ? "register" : "login")}
+              className="text-pinterest-red font-semibold">
+              {mode === "login" ? t("auth.register_cta") : t("auth.login_cta")} →
+            </button>
+          </p>
+        ) : (
+          <button type="button" onClick={() => changeMode("login")} className="text-center text-body-sm text-pinterest-red font-semibold mt-3">
+            ← {t("auth.back_to_login")}
           </button>
-        </p>
+        )}
 
         {/* Divisor */}
         <div className="flex items-center gap-3 my-3">
