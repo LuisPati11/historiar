@@ -33,7 +33,6 @@ export default defineConfig({
         globPatterns: [
           "index.html",
           "manifest.webmanifest",
-          "registerSW.js",
           "assets/index-*.js",
           "assets/index-*.css",
           "icon-*.png",
