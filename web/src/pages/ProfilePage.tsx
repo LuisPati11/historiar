@@ -17,6 +17,15 @@ import { useModalAccessibility } from "../hooks/useModalAccessibility";
 import { GyroPermissionBanner } from "../components/GyroPermissionBanner";
 
 const HERO_URL = publicStorageUrl("monument-images", "puerta-toledo-login.jpg");
+const PROFILE_LOAD_TIMEOUT_MS = 10_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timeoutId = 0;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = window.setTimeout(() => reject(new Error("Profile load timed out")), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => window.clearTimeout(timeoutId));
+}
 
 export function ProfilePage() {
   const { t, i18n } = useTranslation();
@@ -41,30 +50,38 @@ export function ProfilePage() {
   const [showFollowList, setShowFollowList] = useState<"followers" | "following" | null>(null);
   const [selectedMedal, setSelectedMedal] = useState<UserMedal | null>(null);
   const avatarCloseRef = useModalAccessibility(() => setEditingAvatar(false), editingAvatar && !savingAvatar);
+  const userId = user?.id;
+  const userLocale = (user?.user_metadata as { locale?: string } | undefined)?.locale;
 
   useEffect(() => {
     if (loading) return;
-    if (!user) { navigate("/auth", { state: { from: "/profile" } }); return; }
+    if (!userId) { navigate("/auth", { state: { from: "/profile" } }); return; }
     let cancelled = false;
     setDataLoading(true);
     setDataError(false);
 
-    Promise.all([getUserMedals(), getFollowers(user.id), getFollowing(user.id), getCollectionsProgress(), getMyProfileSettings()])
+    withTimeout(Promise.all([
+      getUserMedals(),
+      getFollowers(userId),
+      getFollowing(userId),
+      getCollectionsProgress(),
+      getMyProfileSettings(),
+    ]), PROFILE_LOAD_TIMEOUT_MS)
       .then(([m, frs, fng, cp, settings]) => {
         if (cancelled) return;
-        const preferredLocale = normalizeLocale(settings?.locale ?? (user.user_metadata as { locale?: string } | undefined)?.locale);
+        const preferredLocale = normalizeLocale(settings?.locale ?? userLocale);
         setMedals(m);
         setFollowers(frs);
         setFollowing(fng);
         setCollectionsProgress(cp);
         setLocale(preferredLocale);
         setIsPublic(settings?.is_public ?? false);
-        void i18n.changeLanguage(preferredLocale);
+        if (i18n.resolvedLanguage !== preferredLocale) void i18n.changeLanguage(preferredLocale);
       })
       .catch(() => { if (!cancelled) setDataError(true); })
       .finally(() => { if (!cancelled) setDataLoading(false); });
     return () => { cancelled = true; };
-  }, [user, loading, navigate, i18n, reloadKey, t]);
+  }, [userId, userLocale, loading, navigate, i18n, reloadKey]);
 
   const handleAvatarChange = async (newAvatar: AvatarId) => {
     setSavingAvatar(true);
